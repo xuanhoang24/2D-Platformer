@@ -10,5 +10,6 @@ int main()
 	{
 		cout << "File read operation successful." << endl;
 	}
+
 	delete[] buffer;
 }
