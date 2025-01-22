@@ -21,6 +21,9 @@
     <ClCompile Include="FileController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="StackAllocator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="StandardIncludes.h">
@@ -32,5 +35,19 @@
     <ClInclude Include="FileController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="StackAllocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="File1.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="File3.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="File2.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>
