@@ -4,6 +4,7 @@
 #define RESOURCE_H
 
 #include "Serializable.h"
+#include "ObjectPool.h"
 
 class Resource :public Serializable
 {
@@ -18,10 +19,13 @@ public:
 	void AssignNonDefaultValues();
 	void ToString();
 
+	//Members
+	static ObjectPool<Resource>* Pool;
 private:
 	int m_val1;
 	double m_val2;
 	char m_val3;
+	Resource* m_subResource;
 };
 
 #endif // RESOURCE_H
