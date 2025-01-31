@@ -13,12 +13,14 @@ public:
 
 	// Accessors
 	string GetGUID() { return m_GUID; }
+	void SetGUID(string _guid) { m_GUID = _guid; }
 	int GetDataSize() { return m_dataSize; }
 	void SetDataSize(int _size) { m_dataSize = _size; }
 	byte* GetData() { return m_data; }
 	void SetData(byte* _data) { m_data = _data; }
 
 	//Methods
+	void ToString();
 	static ObjectPool<Asset>* Pool;
 	void Reset()
 	{

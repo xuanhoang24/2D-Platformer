@@ -36,6 +36,7 @@ Asset* AssetController::GetAsset(string _guid)
 
 	//Otherwise, load the asset and return it
 	Asset* asset = Asset::Pool->GetResource();
+	asset->SetGUID(_guid);
 	asset->SetDataSize(FileController::Instance().GetFileSize(_guid));
 	asset->SetData(Stack->GetMemory(asset->GetDataSize()));
 	FileController::Instance().ReadFile(_guid, asset->GetData(), asset->GetDataSize());
