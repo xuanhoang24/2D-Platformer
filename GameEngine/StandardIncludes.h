@@ -1,7 +1,7 @@
-#pragma once
-
 #ifndef STANDARD_INCLUDES_H
 #define STANDARD_INLCUDES_H
+
+#define SDL_MAIN_HANDLED
 
 //Inlcude standard headrs
 #include <string>
@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <thread>
 #include <map>
+#include <SDL.h>
 
 //Poject headers
 #include "Singleton.h"
