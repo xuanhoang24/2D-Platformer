@@ -31,8 +31,8 @@ void GameController::RunGame()
     SpriteSheet* sheet = SpriteSheet::Pool->GetResource();
     sheet->Load("../Assets/Textures/Warrior.tga");
     sheet->SetSize(17, 6, 69, 44);
-    sheet->AddAnimation(EN_AN_IDLE, 0, 6, 0.01f);
-    sheet->AddAnimation(EN_AN_RUN, 6, 8, 0.005f);
+    sheet->AddAnimation(EN_AN_IDLE, 0, 6, 6.0f);
+    sheet->AddAnimation(EN_AN_RUN, 6, 8, 6.0f);
 
     ofstream writeStream("resource.bin", ios::out | ios::binary);
     sheet->Serialize(writeStream);
@@ -57,8 +57,8 @@ void GameController::RunGame()
         SDL_PollEvent(&m_sdlEvent);
         r->SetDrawColor(Color(255, 255, 255, 255));
         r->ClearScreen();
-        r->RenderTexture(sheet2, sheet2->Update(EN_AN_IDLE), Rect(0, 0, 69 * 3, 44 * 3));
-        r->RenderTexture(sheet2, sheet2->Update(EN_AN_RUN), Rect(0, 150, 69 * 3, 150 + 44 * 3));
+        r->RenderTexture(sheet2, sheet2->Update(EN_AN_IDLE, t->GetDeltaTime()), Rect(0, 0, 69 * 3, 44 * 3));
+        r->RenderTexture(sheet2, sheet2->Update(EN_AN_RUN, t->GetDeltaTime()), Rect(0, 150, 69 * 3, 150 + 44 * 3));
 
         std::string s = "Frame number: " + std::to_string(sheet->GetCurrentClip(EN_AN_IDLE));
         font->Write(r->GetRenderer(), s.c_str(), SDL_Color{ 0,255,0 }, SDL_Point{ 250,50 });
