@@ -148,6 +148,7 @@ copy /Y "$(SolutionDir)External\SDL2_ttf-2.20.1\lib\x64\SDL2_ttf.dll" "$(TargetD
     <ClCompile Include="StackAllocator.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TGAReader.cpp" />
+    <ClCompile Include="Timing.cpp" />
     <ClCompile Include="TTFont.cpp" />
     <ClCompile Include="Unit.cpp" />
   </ItemGroup>
@@ -170,6 +171,7 @@ copy /Y "$(SolutionDir)External\SDL2_ttf-2.20.1\lib\x64\SDL2_ttf.dll" "$(TargetD
     <ClInclude Include="StandardIncludes.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TGAReader.h" />
+    <ClInclude Include="Timing.h" />
     <ClInclude Include="TTFont.h" />
     <ClInclude Include="Unit.h" />
   </ItemGroup>
