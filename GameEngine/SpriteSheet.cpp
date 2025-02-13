@@ -93,7 +93,7 @@ void SpriteSheet::ToString()
 
 int SpriteSheet::GetCurrentClip(AnimationNames _name)
 {
-	if (m_animations.count(_name) < 0)
+	if (m_animations.count(_name) <= 0)
 	{
 		return 0;
 	}
