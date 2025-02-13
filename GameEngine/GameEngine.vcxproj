@@ -143,6 +143,8 @@
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Resource.cpp" />
     <ClCompile Include="SoundEffect.cpp" />
+    <ClCompile Include="SpriteAnim.cpp" />
+    <ClCompile Include="SpriteSheet.cpp" />
     <ClCompile Include="StackAllocator.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TGAReader.cpp" />
@@ -151,6 +153,7 @@
   <ItemGroup>
     <ClInclude Include="Asset.h" />
     <ClInclude Include="AssetController.h" />
+    <ClInclude Include="BasicStructs.h" />
     <ClInclude Include="FileController.h" />
     <ClInclude Include="GameController.h" />
     <ClInclude Include="Level.h" />
@@ -160,6 +163,8 @@
     <ClInclude Include="Serializable.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="SoundEffect.h" />
+    <ClInclude Include="SpriteAnim.h" />
+    <ClInclude Include="SpriteSheet.h" />
     <ClInclude Include="StackAllocator.h" />
     <ClInclude Include="StandardIncludes.h" />
     <ClInclude Include="Texture.h" />

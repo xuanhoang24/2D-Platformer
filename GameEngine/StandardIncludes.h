@@ -16,6 +16,7 @@
 
 //Poject headers
 #include "Singleton.h"
+#include "BasicStructs.h"
 
 //OS specific includes and defines
 #ifdef _WIN32
