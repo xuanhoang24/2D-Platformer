@@ -22,7 +22,7 @@ void GameController::RunGame()
     Timing* t = &Timing::Instance();
     r->Initialize();
     r->EnumerateDisplayModes();
-    r->ChangeDisplayMode(&r->GetResolutions()[18]); //0: 1920x1080 144hz; 18: 800x600 144hz
+    r->ChangeDisplayMode(&r->GetResolutions()[0]); //0: 1920x1080 144hz; 18: 800x600 144hz
     TTFont* font = new TTFont();
     font->Initialize(20);
 
@@ -34,10 +34,13 @@ void GameController::RunGame()
     sheet->AddAnimation(EN_AN_IDLE, 0, 6, 6.0f);
     sheet->AddAnimation(EN_AN_RUN, 6, 8, 6.0f);
 
+    RenderTarget* rt = new RenderTarget();
+    rt->Create(NATIVE_XRES, NATIVE_YRES); // Set to game's native resolution
+
     while (m_sdlEvent.type != SDL_QUIT)
     {
         t->Tick();
-
+        rt->Start();
         SDL_PollEvent(&m_sdlEvent);
         r->SetDrawColor(Color(255, 255, 255, 255));
         r->ClearScreen();
@@ -49,10 +52,15 @@ void GameController::RunGame()
         std::string s = "Frame number: " + std::to_string(sheet->GetCurrentClip(EN_AN_RUN));
         font->Write(r->GetRenderer(), s.c_str(), SDL_Color{ 0,255,0 }, SDL_Point{ 250,200 });
 
+        rt->Stop();
+        r->SetDrawColor(Color(0, 0, 0, 255));
+        r->ClearScreen();
+        rt->Render(t->GetDeltaTime()); // Scale native resolution to screen resolution
         SDL_RenderPresent(r->GetRenderer());
         t->CapFPS();
     }
 
+    delete rt;
     delete SpriteAnim::Pool;
     delete SpriteSheet::Pool;
 

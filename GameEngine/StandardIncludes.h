@@ -3,6 +3,9 @@
 
 #define SDL_MAIN_HANDLED
 
+#define NATIVE_XRES 1920
+#define NATIVE_YRES 1080
+
 //Inlcude standard headrs
 #include <string>
 #include <vector>
