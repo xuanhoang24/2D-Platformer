@@ -59,7 +59,8 @@ void GameController::HandleInput(SDL_Event _event)
     }
     else if ((m_input->CT()->Added(m_sdlEvent)) ||
         (m_input->CT()->Removed(m_sdlEvent)) ||
-        (m_input->CT()->ProcessButtons(m_sdlEvent)))
+        (m_input->CT()->ProcessButtons(m_sdlEvent)) ||
+        (m_input->CT()->ProcessMotion(m_sdlEvent)))
     {
         m_ctInfo = m_input->CT()->ToString();
     }

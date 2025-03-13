@@ -10,6 +10,8 @@ struct ControllerInfo
 	SDL_GameController* Controller = nullptr;
 	string Name;
 	vector<SDL_GameControllerButton> Buttons;
+	Position LeftAxis = { };
+	Position RightAxis = { };
 
 	// Methods
 	string ToString()
@@ -19,6 +21,8 @@ struct ControllerInfo
 		{
 			ButtonsString += to_string(Buttons[count]) + "; ";
 		}
+		ButtonsString += " [LX: " + to_string(LeftAxis.X) + ", LY: " + to_string(LeftAxis.Y) + "] ";
+		ButtonsString += " [RX: " + to_string(RightAxis.X) + ", RY: " + to_string(RightAxis.Y) + "] ";
 		return ButtonsString;
 	};
 };
@@ -38,6 +42,7 @@ public:
 	bool Added(SDL_Event _event);
 	bool Removed(SDL_Event _event);
 	bool ProcessButtons(SDL_Event _event);
+	bool ProcessMotion(SDL_Event _event);
 	string ToString();
 
 private:

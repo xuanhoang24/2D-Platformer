@@ -25,7 +25,11 @@ struct Color
 
 struct Point 
 {
-	Point() : X(0), Y(0) {}
+	Point() 
+	{
+		X = 0;
+		Y = 0;
+	}
 
 	Point(unsigned int _x, unsigned int _y)
 	{
@@ -53,4 +57,21 @@ struct Rect
 	unsigned int Y2;
 };
 
+struct Position
+{
+	Position()
+	{
+		X = 0;
+		Y = 0;
+	}
+
+	Position(int _x, int _y)
+	{
+		X = _x;
+		Y = _y;
+	}
+
+	int X;
+	int Y;
+};
 #endif // BASICSTRUCTS_H
