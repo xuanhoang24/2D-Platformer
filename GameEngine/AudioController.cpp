@@ -30,14 +30,16 @@ Song* AudioController::LoadSong(string _guid)
 
 void AudioController::Play(SoundEffect* _effect)
 {
-	M_ASSERT(Mix_PlayChannel(-1, GetSDLSFX(_effect), 0) != -1, "Failed to play SFX");
-	m_currentEffect = _effect->GetData()->GetGUID();
+	int channel;
+	channel = Mix_PlayChannel(-1, GetSDLSFX(_effect), 0);
+	if (channel == -1)return;
+	m_currentEffects[channel] = _effect->GetData()->GetGUID();
 	Mix_ChannelFinished(AudioController::CatchChannelDone);
 }
 
 void AudioController::CatchChannelDone(int _channel)
 {
-	AudioController::Instance().m_currentEffect = "";
+	AudioController::Instance().m_currentEffects[_channel] = "";
 }
 
 Mix_Chunk* AudioController::GetSDLSFX(SoundEffect* _effect)

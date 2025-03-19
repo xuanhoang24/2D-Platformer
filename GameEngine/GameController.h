@@ -2,6 +2,7 @@
 #define GAME_CONTROLLER_H
 
 #include "StandardIncludes.h"
+#include "AudioController.h"
 
 class Renderer;
 class TTFont;
@@ -31,7 +32,7 @@ private:
     bool m_quit;
     InputController* m_input;
     AudioController* m_audio;
-    SoundEffect* m_effect;
+    SoundEffect* m_effects[MaxEffectChannels];
     Song* m_song;
 };
 

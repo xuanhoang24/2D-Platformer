@@ -17,7 +17,7 @@ GameController::GameController()
     m_input = nullptr;
     m_quit = false;
     m_audio = nullptr;
-    m_effect = nullptr;
+    memset(m_effects, 0, sizeof(SoundEffect*) * MaxEffectChannels);
     m_song = nullptr;
 }
 
@@ -35,7 +35,11 @@ void GameController::Initialize()
     m_fArial20 = new TTFont();
     m_fArial20->Initialize(20);
     m_audio = &AudioController::Instance();
-    m_effect = m_audio->LoadEffect("../Assets/Audio/Effects/Whoosh.wav");
+    m_effects[0] = m_audio->LoadEffect("../Assets/Audio/Effects/Whoosh.wav");
+    m_effects[1] = m_audio->LoadEffect("../Assets/Audio/Effects/BeeFlyingLoop.mp3");
+    m_effects[2] = m_audio->LoadEffect("../Assets/Audio/Effects/DistantGunshot.mp3");
+    m_effects[3] = m_audio->LoadEffect("../Assets/Audio/Effects/DrinkSipSwallow.mp3");
+
     m_song = m_audio->LoadSong("../Assets/Audio/Music/Track1.mp3");
 }
 
@@ -54,7 +58,7 @@ void GameController::HandleInput(SDL_Event _event)
     }
     else if (m_input->KB()->KeyUp(_event, SDLK_p))
     {
-        m_audio->Play(m_effect);
+        m_audio->Play(m_effects[rand() % 4]);
     }
     else if (m_input->KB()->KeyUp(_event, SDLK_a))
     {
@@ -96,7 +100,12 @@ void GameController::RunGame()
             song += " " + to_string((int)m_audio->MusicPosition()) + "/" + m_audio->GetMusicLength();
         }
         m_fArial20->Write(m_renderer->GetRenderer(), song.c_str(), { 0,0,255 }, { 10,10 });
-        m_fArial20->Write(m_renderer->GetRenderer(), ("Current Effect: " + m_audio->GetCurrentEffect()).c_str(), { 0,0,255 }, { 10,30 });
+        for (int count = 0; count < MaxEffectChannels; count++) 
+        {
+            string eff = "Effect " + to_string(count) + ": ";
+            eff += m_audio->GetCurrentEffect()[count];
+            m_fArial20->Write(m_renderer->GetRenderer(), eff.c_str(), { 255,0,255 }, { 10,30 + (count * 20) });
+        }
         SDL_RenderPresent(m_renderer->GetRenderer());
     }
 }
