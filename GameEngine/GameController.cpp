@@ -56,7 +56,9 @@ void GameController::HandleInput(SDL_Event _event)
     if (_event.type == SDL_QUIT)
         m_quit = true;
     if ((m_sdlEvent.type == SDL_QUIT) || (m_input->KB()->KeyUp(m_sdlEvent, SDLK_ESCAPE))) 
-        m_quit = true; 
+        m_quit = true;
+
+    m_player->HandleInput(_event);
 }
 
 void GameController::RunGame()
