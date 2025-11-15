@@ -26,7 +26,7 @@ Player::Player()
 	// Jump
 	m_jumpPressed = false;
 	m_isJumping = false;
-	m_jumpForce = -150.0f; // Screen Y-axis is flipped so negative is jump up
+	m_jumpForce = -350.0f; // Screen Y-axis is flipped so negative is jump up
 	m_jumpHoldForce = -250.0f; // Holding jump add more height
 	m_jumpHoldTimer = 0.0f;
 	m_jumpMaxHoldTime = 0.2f;
@@ -46,7 +46,6 @@ void Player::Initialize()
 	m_sprite->AddAnimation(EN_AN_IDLE, 0, 6, 6.0f);
 	m_sprite->AddAnimation(EN_AN_RUN, 6, 8, 6.0f);
 	m_sprite->AddAnimation(EN_AN_JUMP_UP_FALL, 42, 8, 6.0f);
-
 }
 
 void Player::Update(float _deltaTime)
@@ -64,7 +63,7 @@ void Player::Update(float _deltaTime)
 
 #pragma region Animation Logic
 	if (m_veloX == 0)
-		m_sprite->Update(EN_AN_IDLE, _deltaTime);
+		m_sprite->Update(EN_AN_RUN, _deltaTime);
 	else if (m_isRunning)
 		m_sprite->Update(EN_AN_RUN, _deltaTime);
 	else
@@ -148,47 +147,35 @@ void Player::Render(Renderer* _renderer)
 void Player::HandleInput(SDL_Event _event)
 {
 	Keyboard* kb = InputController::Instance().KB();
+	const Uint8* keyState = SDL_GetKeyboardState(NULL);
+	float speed = m_shiftDown ? m_runSpeed : m_walkSpeed;
 
 	// SHIFT DOWN
-	if (kb->KeyDown(_event, SDLK_LSHIFT) || kb->KeyDown(_event, SDLK_RSHIFT))
-		m_shiftDown = true;
-
-	if (kb->KeyUp(_event, SDLK_LSHIFT) || kb->KeyUp(_event, SDLK_RSHIFT))
-		m_shiftDown = false;
-
+	m_shiftDown = keyState[SDL_SCANCODE_LSHIFT] || keyState[SDL_SCANCODE_RSHIFT];
 	// A Key
-	if (kb->KeyDown(_event, SDLK_a))
+	if (keyState[SDL_SCANCODE_A]) 
 	{
-		float speed = m_shiftDown ? m_runSpeed : m_walkSpeed;
-
 		m_veloX = -speed;
 		m_isRunning = m_shiftDown;
 	}
-
 	// D Key
-	if (kb->KeyDown(_event, SDLK_d))
+	else if (keyState[SDL_SCANCODE_D])
 	{
-		float speed = m_shiftDown ? m_runSpeed : m_walkSpeed;
-
 		m_veloX = speed;
 		m_isRunning = m_shiftDown;
 	}
-
-	// Relase A or D
-	if (kb->KeyUp(_event, SDLK_a) || kb->KeyUp(_event, SDLK_d))
+	else // Relase A or D
 	{
 		m_veloX = 0;
 		m_isRunning = false;
 	}
 
 	// Space key
-	if (kb->KeyDown(_event, SDLK_SPACE))
+	if (keyState[SDL_SCANCODE_SPACE])
 	{
 		m_jumpPressed = true;
 	}
-
-	// Release Space
-	if (kb->KeyUp(_event, SDLK_SPACE))
+	else
 	{
 		m_jumpPressed = false;
 		m_isJumping = false;

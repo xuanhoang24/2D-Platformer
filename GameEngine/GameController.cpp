@@ -63,22 +63,24 @@ void GameController::HandleInput(SDL_Event _event)
 
 void GameController::RunGame()
 {
+    Timing* t = &Timing::Instance();
+    t->SetFPS(80);
+
     Initialize();
 
     while (!m_quit)
     {
-        Timing::Instance().Tick();
-        float deltaTime = Timing::Instance().GetDeltaTime();
-
+        t->Tick();
         m_renderer->SetDrawColor(Color(255, 255, 255, 255));
         m_renderer->ClearScreen();
 
         while (SDL_PollEvent(&m_sdlEvent) != 0)
             HandleInput(m_sdlEvent);
 
-        m_player->Update(deltaTime);
+        m_player->Update(t->GetDeltaTime());
         m_player->Render(m_renderer);
 
+        t->CapFPS();
         SDL_RenderPresent(m_renderer->GetRenderer());
     }
 }
