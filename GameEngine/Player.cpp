@@ -9,12 +9,29 @@ Player::Player()
 	m_sprite = nullptr;
 	m_position = Point(100, 300);
 	scale = 2.0f;
-	m_walkSpeed = 100.0f; // pixels per second
-	m_runSpeed = 200.0f;
+
+	// Movement
+	m_walkSpeed = 800.0f; // pixels per second
+	m_runSpeed = 900.0f;
 	m_veloX = 0;
 	m_veloY = 0;
 	m_isRunning = false;
 	m_shiftDown = false;
+
+	// Gravity
+	m_gravity = 980.0f;
+	m_groundY = 500.0f; // Temp
+	m_isGrounded = false;
+
+	// Jump
+	m_jumpPressed = false;
+	m_isJumping = false;
+	m_jumpForce = -150.0f; // Screen Y-axis is flipped so negative is jump up
+	m_jumpHoldForce = -250.0f; // Holding jump add more height
+	m_jumpHoldTimer = 0.0f;
+	m_jumpMaxHoldTime = 0.2f;
+	m_coyoteTime = 0.12f;
+	m_coyoteTimer = 0.0f;
 }
 
 Player::~Player()
@@ -28,20 +45,76 @@ void Player::Initialize()
 	m_sprite->SetSize(17, 6, 69, 44);
 	m_sprite->AddAnimation(EN_AN_IDLE, 0, 6, 6.0f);
 	m_sprite->AddAnimation(EN_AN_RUN, 6, 8, 6.0f);
+	m_sprite->AddAnimation(EN_AN_JUMP_UP_FALL, 42, 8, 6.0f);
+
 }
 
 void Player::Update(float _deltaTime)
 {
+#pragma region Calculate Movment
 	// Move player
-	m_position.X += (int)(m_veloX * _deltaTime);
+	m_position.X += m_veloX * _deltaTime;
 
-	// Animation logic
+	// Gravity
+	m_veloY += m_gravity * _deltaTime;
+
+	// Apply velocity
+	m_position.Y += (m_veloY * _deltaTime);
+#pragma endregion Calculate Movment
+
+#pragma region Animation Logic
 	if (m_veloX == 0)
 		m_sprite->Update(EN_AN_IDLE, _deltaTime);
 	else if (m_isRunning)
 		m_sprite->Update(EN_AN_RUN, _deltaTime);
 	else
 		m_sprite->Update(EN_AN_IDLE, _deltaTime);
+#pragma endregion Animation Logic
+
+	// Ground Collision
+	if (m_position.Y >= m_groundY)
+	{
+		m_position.Y = m_groundY;
+		m_veloY = 0;
+		m_isGrounded = true;
+		m_isJumping = false;
+	}
+	else
+	{
+		m_isGrounded = false;
+	}
+
+	// Update Coyote Timer
+	if (m_isGrounded)
+	{
+		// Reset coyote timer
+		m_coyoteTimer = m_coyoteTime; 
+	}
+	else
+	{
+		// Countdown while in air
+		m_coyoteTimer -= _deltaTime;
+	}
+
+	// Jump
+	if (m_jumpPressed)
+	{
+		if (!m_isJumping && (m_isGrounded || m_coyoteTimer > 0))
+		{
+			// Initial Jump
+			m_isJumping = true;
+			m_isGrounded = false;
+			m_veloY = m_jumpForce;
+			m_jumpHoldTimer = m_jumpMaxHoldTime;
+		}
+
+		// Hold jump
+		if (m_isJumping && m_jumpHoldTimer > 0)
+		{
+			m_veloY += m_jumpHoldForce * _deltaTime;
+			m_jumpHoldTimer -= _deltaTime;
+		}
+	}
 }
 
 void Player::Render(Renderer* _renderer)
@@ -59,12 +132,15 @@ void Player::Render(Renderer* _renderer)
 	// Get the part of the sprite sheet for the current animation frame
 	Rect srcRect(0, 0, 0, 0);
 
-	if (m_veloX == 0)
-		srcRect = m_sprite->Update(EN_AN_IDLE, 0);
+	if (!m_isGrounded)
+		srcRect = m_sprite->Update(EN_AN_JUMP_UP_FALL, Timing::Instance().GetDeltaTime());
+	else if (m_veloX == 0)
+		srcRect = m_sprite->Update(EN_AN_IDLE, Timing::Instance().GetDeltaTime());
 	else if (m_isRunning)
-		srcRect = m_sprite->Update(EN_AN_RUN, 0);
+		srcRect = m_sprite->Update(EN_AN_RUN, Timing::Instance().GetDeltaTime());
 	else
-		srcRect = m_sprite->Update(EN_AN_IDLE, 0);
+		srcRect = m_sprite->Update(EN_AN_IDLE, Timing::Instance().GetDeltaTime());
+
 
 	_renderer->RenderTexture(m_sprite, srcRect, destRect);
 }
@@ -98,10 +174,23 @@ void Player::HandleInput(SDL_Event _event)
 		m_isRunning = m_shiftDown;
 	}
 
-	// RELEASE A or D
+	// Relase A or D
 	if (kb->KeyUp(_event, SDLK_a) || kb->KeyUp(_event, SDLK_d))
 	{
 		m_veloX = 0;
 		m_isRunning = false;
+	}
+
+	// Space key
+	if (kb->KeyDown(_event, SDLK_SPACE))
+	{
+		m_jumpPressed = true;
+	}
+
+	// Release Space
+	if (kb->KeyUp(_event, SDLK_SPACE))
+	{
+		m_jumpPressed = false;
+		m_isJumping = false;
 	}
 }
