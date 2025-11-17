@@ -28,6 +28,7 @@ void GameController::Initialize()
     AssetController::Instance().Initialize(50000000);
     SpriteAnim::Pool = new ObjectPool<SpriteAnim>();
     SpriteSheet::Pool = new ObjectPool<SpriteSheet>();
+    Texture::Pool = new ObjectPool<Texture>();
 
     // Systems
     m_renderer = &Renderer::Instance();
@@ -37,6 +38,11 @@ void GameController::Initialize()
     // Player
     m_player = new Player();
     m_player->Initialize();
+
+    // Platform
+    Platform* platform = new Platform();
+    platform->Initialize("../Assets/Textures/Emoji.tga", 100, 450, 300, 64);
+    m_platforms.push_back(platform);
 }
 
 void GameController::ShutDown()
@@ -77,9 +83,13 @@ void GameController::RunGame()
         while (SDL_PollEvent(&m_sdlEvent) != 0)
             HandleInput(m_sdlEvent);
 
+        // Player
         m_player->Update(t->GetDeltaTime());
         m_player->Render(m_renderer);
 
+        // Platfom
+        for (auto platform : m_platforms)
+            platform->Render(m_renderer);
         t->CapFPS();
         SDL_RenderPresent(m_renderer->GetRenderer());
     }
