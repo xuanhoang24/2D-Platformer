@@ -104,13 +104,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)External\SDL2-2.26.1\include;$(SolutionDir)External\SDL2_ttf-2.20.1\include;$(SolutionDir)External\SDL2_mixer-2.8.1\include;$(SolutionDir)External\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)External\SDL2-2.26.1\include;$(SolutionDir)External\SDL2_ttf-2.20.1\include;$(SolutionDir)External\SDL2_mixer-2.8.1\include;$(SolutionDir)External\glm;$(SolutionDir)External\tmxlite\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)External\SDL2-2.26.1\lib\x64;$(SolutionDir)External\SDL2_ttf-2.20.1\lib\x64;$(SolutionDir)External\SDL2_mixer-2.8.1\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_ttf.lib;SDL2_mixer.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)External\SDL2-2.26.1\lib\x64;$(SolutionDir)External\SDL2_ttf-2.20.1\lib\x64;$(SolutionDir)External\SDL2_mixer-2.8.1\lib\x64;$(SolutionDir)External\tmxlite\x64\bin\DebugStatic;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_ttf.lib;SDL2_mixer.lib;libtmxlite-s-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>copy /Y "$(SolutionDir)External\SDL2-2.26.1\lib\x64\SDL2.dll" "$(TargetDir)"
@@ -163,6 +163,11 @@ copy /Y "$(SolutionDir)External\SDL2_mixer-2.8.1\lib\x64\SDL2_mixer.dll" "$(Targ
     <ClCompile Include="WavDraw.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="File1.txt" />
+    <Text Include="File2.txt" />
+    <Text Include="File3.txt" />
+  </ItemGroup>
+  <ItemGroup>
     <ClInclude Include="Asset.h" />
     <ClInclude Include="AssetController.h" />
     <ClInclude Include="AudioController.h" />
@@ -193,11 +198,6 @@ copy /Y "$(SolutionDir)External\SDL2_mixer-2.8.1\lib\x64\SDL2_mixer.dll" "$(Targ
     <ClInclude Include="TTFont.h" />
     <ClInclude Include="Unit.h" />
     <ClInclude Include="WavDraw.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="File1.txt" />
-    <Text Include="File2.txt" />
-    <Text Include="File3.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
