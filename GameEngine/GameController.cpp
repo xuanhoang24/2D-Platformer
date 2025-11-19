@@ -7,6 +7,7 @@
 #include "AssetController.h"
 #include "Keyboard.h"
 #include "Timing.h"
+#include "GameMap.h"
 
 GameController::GameController()
 {
@@ -37,6 +38,10 @@ void GameController::Initialize()
     // Player
     m_player = new Player();
     m_player->Initialize();
+
+    // Game Map
+    g_Map = new GameMap();
+    g_Map->Load("../Assets/Maps/untitled.tmx");
 }
 
 void GameController::ShutDown()
@@ -79,6 +84,7 @@ void GameController::RunGame()
 
         m_player->Update(t->GetDeltaTime());
         m_player->Render(m_renderer);
+        g_Map->Render(m_renderer);
 
         t->CapFPS();
         SDL_RenderPresent(m_renderer->GetRenderer());

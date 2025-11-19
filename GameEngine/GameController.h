@@ -12,7 +12,7 @@ class SoundEffect;
 class Song;
 class WavDraw;
 class Player;
-
+class GameMap;
 class GameController : public Singleton<GameController>
 {
 public:
@@ -32,6 +32,7 @@ private:
     Renderer* m_renderer;
     InputController* m_input;
     Player* m_player;
+    GameMap* g_Map;
 
     bool m_quit;
 };

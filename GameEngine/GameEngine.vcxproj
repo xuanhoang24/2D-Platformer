@@ -142,6 +142,7 @@ copy /y "$(SolutionDir)External\SDL2_image-2.8.8\lib\x64\SDL2_image.dll" "$(Targ
     <ClCompile Include="Controller.cpp" />
     <ClCompile Include="FileController.cpp" />
     <ClCompile Include="GameController.cpp" />
+    <ClCompile Include="GameMap.cpp" />
     <ClCompile Include="ImageReader.cpp" />
     <ClCompile Include="InputController.cpp" />
     <ClCompile Include="Keyboard.cpp" />
@@ -160,6 +161,7 @@ copy /y "$(SolutionDir)External\SDL2_image-2.8.8\lib\x64\SDL2_image.dll" "$(Targ
     <ClCompile Include="StackAllocator.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TGAReader.cpp" />
+    <ClCompile Include="TileMap.cpp" />
     <ClCompile Include="Timing.cpp" />
     <ClCompile Include="TTFont.cpp" />
     <ClCompile Include="Unit.cpp" />
@@ -178,6 +180,7 @@ copy /y "$(SolutionDir)External\SDL2_image-2.8.8\lib\x64\SDL2_image.dll" "$(Targ
     <ClInclude Include="Controller.h" />
     <ClInclude Include="FileController.h" />
     <ClInclude Include="GameController.h" />
+    <ClInclude Include="GameMap.h" />
     <ClInclude Include="ImageReader.h" />
     <ClInclude Include="InputController.h" />
     <ClInclude Include="Keyboard.h" />
@@ -199,6 +202,7 @@ copy /y "$(SolutionDir)External\SDL2_image-2.8.8\lib\x64\SDL2_image.dll" "$(Targ
     <ClInclude Include="StandardIncludes.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TGAReader.h" />
+    <ClInclude Include="TileMap.h" />
     <ClInclude Include="Timing.h" />
     <ClInclude Include="TTFont.h" />
     <ClInclude Include="Unit.h" />

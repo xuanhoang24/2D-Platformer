@@ -99,6 +99,12 @@
     <ClCompile Include="ImageReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GameMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TileMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="File1.txt">
@@ -206,6 +212,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ImageReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GameMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TileMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
