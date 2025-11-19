@@ -21,6 +21,7 @@
 #include <SDL_ttf.h>
 #include <SDL_pixels.h>
 #include <SDL_mixer.h>
+#include <SDL_image.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 //Poject headers

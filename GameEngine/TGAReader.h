@@ -2,6 +2,7 @@
 #define TGA_READER_H
 
 #include "StandardIncludes.h"
+#include "ImageReader.h"
 
 class Asset;
 
@@ -25,22 +26,14 @@ typedef struct
 
 #pragma pack(pop) // Disable memory packing
 
-typedef struct
-{
-    short Width;
-    short Height;
-    short BitsPerPixel;
-    short DataOffset;
-} ImageInfo;
-
 class TGAReader
 {
 public:
-    //Constructors/ Destructors
+    // Constructors/ Destructors
     TGAReader();
     virtual ~TGAReader();
 
-    //Methods
+    // Methods
     void ProcessAsset(Asset* _rawTGA, ImageInfo* _imageInfo);
     Asset* LoadTGAFromFile(string _file, ImageInfo* _imageInfo);
 

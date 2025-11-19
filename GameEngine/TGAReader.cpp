@@ -1,5 +1,4 @@
 #include "TGAReader.h"
-
 #include "AssetController.h"
 
 TGAReader::TGAReader()

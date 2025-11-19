@@ -1,4 +1,5 @@
 #include "Texture.h"
+#include "ImageReader.h"
 
 ObjectPool<Texture>* Texture::Pool = nullptr;
 
@@ -16,8 +17,8 @@ Texture::~Texture()
 
 void Texture::Load(string _guid)
 {
-    TGAReader r = TGAReader();
-    m_texture = r.LoadTGAFromFile(_guid, &m_imageInfo);
+    ImageReader reader = ImageReader();
+    m_texture = reader.LoadImage(_guid, &m_imageInfo);
 }
 
 void Texture::Serialize(std::ostream& _stream)
