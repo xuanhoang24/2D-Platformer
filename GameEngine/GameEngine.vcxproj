@@ -135,79 +135,113 @@ copy /y "$(SolutionDir)External\SDL2_image-2.8.8\lib\x64\SDL2_image.dll" "$(Targ
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
+  
+  <!-- Core Files -->
   <ItemGroup>
-    <ClCompile Include="Asset.cpp" />
-    <ClCompile Include="AssetController.cpp" />
-    <ClCompile Include="AudioController.cpp" />
-    <ClCompile Include="Controller.cpp" />
-    <ClCompile Include="FileController.cpp" />
-    <ClCompile Include="GameController.cpp" />
-    <ClCompile Include="GameMap.cpp" />
-    <ClCompile Include="ImageReader.cpp" />
-    <ClCompile Include="InputController.cpp" />
-    <ClCompile Include="Keyboard.cpp" />
-    <ClCompile Include="Level.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Mouse.cpp" />
-    <ClCompile Include="Player.cpp" />
-    <ClCompile Include="PNGReader.cpp" />
-    <ClCompile Include="Renderer.cpp" />
-    <ClCompile Include="RenderTarget.cpp" />
-    <ClCompile Include="Resource.cpp" />
-    <ClCompile Include="Song.cpp" />
-    <ClCompile Include="SoundEffect.cpp" />
-    <ClCompile Include="SpriteAnim.cpp" />
-    <ClCompile Include="SpriteSheet.cpp" />
-    <ClCompile Include="StackAllocator.cpp" />
-    <ClCompile Include="Texture.cpp" />
-    <ClCompile Include="TGAReader.cpp" />
-    <ClCompile Include="TileMap.cpp" />
-    <ClCompile Include="Timing.cpp" />
-    <ClCompile Include="TTFont.cpp" />
-    <ClCompile Include="Unit.cpp" />
-    <ClCompile Include="WavDraw.cpp" />
+    <ClCompile Include="Core\main.cpp" />
+    <ClCompile Include="Core\GameController.cpp" />
+    <ClCompile Include="Core\Timing.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="File1.txt" />
-    <Text Include="File2.txt" />
-    <Text Include="File3.txt" />
+    <ClInclude Include="Core\GameController.h" />
+    <ClInclude Include="Core\Timing.h" />
+    <ClInclude Include="Core\StandardIncludes.h" />
+    <ClInclude Include="Core\Singleton.h" />
+    <ClInclude Include="Core\BasicStructs.h" />
+  </ItemGroup>
+  
+  <!-- Graphics Files -->
+  <ItemGroup>
+    <ClCompile Include="Graphics\Renderer.cpp" />
+    <ClCompile Include="Graphics\RenderTarget.cpp" />
+    <ClCompile Include="Graphics\Texture.cpp" />
+    <ClCompile Include="Graphics\SpriteSheet.cpp" />
+    <ClCompile Include="Graphics\SpriteAnim.cpp" />
+    <ClCompile Include="Graphics\TileMap.cpp" />
+    <ClCompile Include="Graphics\TTFont.cpp" />
+    <ClCompile Include="Graphics\ImageReader.cpp" />
+    <ClCompile Include="Graphics\TGAReader.cpp" />
+    <ClCompile Include="Graphics\PNGReader.cpp" />
+    <ClCompile Include="Graphics\WavDraw.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Asset.h" />
-    <ClInclude Include="AssetController.h" />
-    <ClInclude Include="AudioController.h" />
-    <ClInclude Include="BasicStructs.h" />
-    <ClInclude Include="Controller.h" />
-    <ClInclude Include="FileController.h" />
-    <ClInclude Include="GameController.h" />
-    <ClInclude Include="GameMap.h" />
-    <ClInclude Include="ImageReader.h" />
-    <ClInclude Include="InputController.h" />
-    <ClInclude Include="Keyboard.h" />
-    <ClInclude Include="Level.h" />
-    <ClInclude Include="Mouse.h" />
-    <ClInclude Include="ObjectPool.h" />
-    <ClInclude Include="Player.h" />
-    <ClInclude Include="PNGReader.h" />
-    <ClInclude Include="Renderer.h" />
-    <ClInclude Include="RenderTarget.h" />
-    <ClInclude Include="Resource.h" />
-    <ClInclude Include="Serializable.h" />
-    <ClInclude Include="Singleton.h" />
-    <ClInclude Include="Song.h" />
-    <ClInclude Include="SoundEffect.h" />
-    <ClInclude Include="SpriteAnim.h" />
-    <ClInclude Include="SpriteSheet.h" />
-    <ClInclude Include="StackAllocator.h" />
-    <ClInclude Include="StandardIncludes.h" />
-    <ClInclude Include="Texture.h" />
-    <ClInclude Include="TGAReader.h" />
-    <ClInclude Include="TileMap.h" />
-    <ClInclude Include="Timing.h" />
-    <ClInclude Include="TTFont.h" />
-    <ClInclude Include="Unit.h" />
-    <ClInclude Include="WavDraw.h" />
+    <ClInclude Include="Graphics\Renderer.h" />
+    <ClInclude Include="Graphics\RenderTarget.h" />
+    <ClInclude Include="Graphics\Texture.h" />
+    <ClInclude Include="Graphics\SpriteSheet.h" />
+    <ClInclude Include="Graphics\SpriteAnim.h" />
+    <ClInclude Include="Graphics\TileMap.h" />
+    <ClInclude Include="Graphics\TTFont.h" />
+    <ClInclude Include="Graphics\ImageReader.h" />
+    <ClInclude Include="Graphics\TGAReader.h" />
+    <ClInclude Include="Graphics\PNGReader.h" />
+    <ClInclude Include="Graphics\WavDraw.h" />
   </ItemGroup>
+  
+  <!-- Audio Files -->
+  <ItemGroup>
+    <ClCompile Include="Audio\AudioController.cpp" />
+    <ClCompile Include="Audio\SoundEffect.cpp" />
+    <ClCompile Include="Audio\Song.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Audio\AudioController.h" />
+    <ClInclude Include="Audio\SoundEffect.h" />
+    <ClInclude Include="Audio\Song.h" />
+  </ItemGroup>
+  
+  <!-- Input Files -->
+  <ItemGroup>
+    <ClCompile Include="Input\InputController.cpp" />
+    <ClCompile Include="Input\Keyboard.cpp" />
+    <ClCompile Include="Input\Mouse.cpp" />
+    <ClCompile Include="Input\Controller.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Input\InputController.h" />
+    <ClInclude Include="Input\Keyboard.h" />
+    <ClInclude Include="Input\Mouse.h" />
+    <ClInclude Include="Input\Controller.h" />
+  </ItemGroup>
+  
+  <!-- Resources Files -->
+  <ItemGroup>
+    <ClCompile Include="Resources\AssetController.cpp" />
+    <ClCompile Include="Resources\Asset.cpp" />
+    <ClCompile Include="Resources\FileController.cpp" />
+    <ClCompile Include="Resources\Resource.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Resources\AssetController.h" />
+    <ClInclude Include="Resources\Asset.h" />
+    <ClInclude Include="Resources\FileController.h" />
+    <ClInclude Include="Resources\Resource.h" />
+    <ClInclude Include="Resources\Serializable.h" />
+  </ItemGroup>
+  
+  <!-- Utils Files -->
+  <ItemGroup>
+    <ClCompile Include="Utils\StackAllocator.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Utils\StackAllocator.h" />
+    <ClInclude Include="Utils\ObjectPool.h" />
+  </ItemGroup>
+  
+  <!-- Game Files -->
+  <ItemGroup>
+    <ClCompile Include="Game\Player.cpp" />
+    <ClCompile Include="Game\GameMap.cpp" />
+    <ClCompile Include="Game\Level.cpp" />
+    <ClCompile Include="Game\Unit.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Game\Player.h" />
+    <ClInclude Include="Game\GameMap.h" />
+    <ClInclude Include="Game\Level.h" />
+    <ClInclude Include="Game\Unit.h" />
+  </ItemGroup>
+  
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
