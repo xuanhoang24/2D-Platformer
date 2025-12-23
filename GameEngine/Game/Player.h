@@ -21,10 +21,13 @@ public:
 	
 	float GetWidth() const { return 69 * scale; }
 	float GetHeight() const { return 44 * scale; }
+	float GetWorldX() const { return m_worldX; }
+	float GetWorldY() const { return m_position.Y; }
 
 private:
 	SpriteSheet* m_sprite;
-	Point m_position; // Y represent top-left (or top) of the sprite, X represent left horizontal of the sprite
+	Point m_position; // Screen position
+	float m_worldX;   // World position
 
 	float scale;
 	

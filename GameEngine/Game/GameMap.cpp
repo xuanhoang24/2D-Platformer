@@ -48,3 +48,16 @@ void GameMap::SetMapYOffset(int _yOffset)
     if (m_tileMap)
         m_tileMap->SetYOffset(_yOffset);
 }
+
+float GameMap::GetCameraX() const
+{
+    if (m_tileMap)
+        return m_tileMap->GetCameraX();
+    return 0.0f;
+}
+
+void GameMap::SetCameraX(float _cameraX)
+{
+    if (m_tileMap)
+        m_tileMap->SetCameraX(_cameraX);
+}

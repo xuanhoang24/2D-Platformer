@@ -30,9 +30,11 @@ public:
     int GetMapPixelWidth() const { return m_mapWidth * m_tileWidth; }
     int GetMapPixelHeight() const { return m_mapHeight * m_tileHeight; }
     int GetYOffset() const { return m_yOffset; }
+    float GetCameraX() const { return m_cameraX; }
 
     // Setters
     void SetYOffset(int _yOffset) { m_yOffset = _yOffset; }
+    void SetCameraX(float _cameraX) { m_cameraX = _cameraX; }
 
 private:
     struct TilesetInfo
@@ -81,6 +83,7 @@ private:
     int m_tileWidth = 0;
     int m_tileHeight = 0;
     int m_yOffset = 0;
+    float m_cameraX = 0.0f;
 };
 
 #endif // TILE_MAP_H

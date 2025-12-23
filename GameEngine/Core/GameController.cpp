@@ -92,6 +92,20 @@ void GameController::RunGame()
             HandleInput(m_sdlEvent);
 
         m_player->Update(t->GetDeltaTime());
+        
+        // Update camera to follow player
+        float playerWorldX = m_player->GetWorldX();
+        float playerWidth = m_player->GetWidth();
+        int screenWidth = m_renderer->GetWindowSize().X;
+        
+        // Center camera on player
+        float cameraX = playerWorldX + playerWidth * 0.5f - screenWidth * 0.5f;
+        
+        // Don't let camera go negative at the start
+        if (cameraX < 0) cameraX = 0;
+        
+        g_Map->SetCameraX(cameraX);
+        
         g_Map->Render(m_renderer);
         m_player->Render(m_renderer);
 

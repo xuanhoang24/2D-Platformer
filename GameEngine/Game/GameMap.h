@@ -21,9 +21,11 @@ public:
     // Getters
     int GetMapPixelWidth() const;
     int GetMapPixelHeight() const;
+    float GetCameraX() const;
     
     // Setters
     void SetMapYOffset(int _yOffset);
+    void SetCameraX(float _cameraX);
 
 private:
     TileMap* m_tileMap = nullptr;

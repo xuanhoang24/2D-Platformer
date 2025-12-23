@@ -91,51 +91,66 @@ TileMap::TilesetInfo* TileMap::FindTileset(int _gid)
 void TileMap::Render(Renderer* _renderer)
 {
     SDL_Renderer* sdl = _renderer->GetRenderer();
-
-    // 1. Draw image layers (background)
-    for (const auto& img : m_imageLayers)
+    int mapPixelWidth = GetMapPixelWidth();
+    
+    // Get screen width to determine how many map copies to render
+    Point screenSize = _renderer->GetWindowSize();
+    int screenWidth = screenSize.X;
+    
+    // Calculate which map instances we need to render
+    int startMapIndex = (int)floor(m_cameraX / mapPixelWidth);
+    int endMapIndex = (int)ceil((m_cameraX + screenWidth) / mapPixelWidth);
+    
+    // Render multiple instances of the map for endless scrolling
+    for (int mapIndex = startMapIndex; mapIndex <= endMapIndex; ++mapIndex)
     {
-        SDL_Rect dst;
-        dst.x = img.x;
-        dst.y = img.y + m_yOffset;
-        SDL_QueryTexture(img.texture, nullptr, nullptr, &dst.w, &dst.h);
-        SDL_RenderCopy(sdl, img.texture, nullptr, &dst);
-    }
-
-    // 2. Draw tile layers
-    for (auto& li : m_layers)
-    {
-        const auto* layer = li.layer;
-        if (!layer) continue;
-
-        const auto& tiles = layer->getTiles();
-
-        for (int y = 0; y < m_mapHeight; ++y)
+        int mapOffsetX = mapIndex * mapPixelWidth;
+        
+        // 1. Draw image layers (background)
+        for (const auto& img : m_imageLayers)
         {
-            for (int x = 0; x < m_mapWidth; ++x)
+            SDL_Rect dst;
+            dst.x = img.x + mapOffsetX - (int)m_cameraX;
+            dst.y = img.y + m_yOffset;
+            SDL_QueryTexture(img.texture, nullptr, nullptr, &dst.w, &dst.h);
+            SDL_RenderCopy(sdl, img.texture, nullptr, &dst);
+        }
+
+        // 2. Draw tile layers
+        for (auto& li : m_layers)
+        {
+            const auto* layer = li.layer;
+            if (!layer) continue;
+
+            const auto& tiles = layer->getTiles();
+
+            for (int y = 0; y < m_mapHeight; ++y)
             {
-                int index = x + y * m_mapWidth;
-                int gid = tiles[index].ID;
-                if (gid == 0) continue;
+                for (int x = 0; x < m_mapWidth; ++x)
+                {
+                    int index = x + y * m_mapWidth;
+                    int gid = tiles[index].ID;
+                    if (gid == 0) continue;
 
-                TilesetInfo* ts = FindTileset(gid);
-                if (!ts) continue;
+                    TilesetInfo* ts = FindTileset(gid);
+                    if (!ts) continue;
 
-                int id = gid - ts->firstGID;
+                    int id = gid - ts->firstGID;
 
-                SDL_Rect src;
-                src.x = (id % ts->columns) * ts->tileWidth;
-                src.y = (id / ts->columns) * ts->tileHeight;
-                src.w = ts->tileWidth;
-                src.h = ts->tileHeight;
+                    SDL_Rect src;
+                    src.x = (id % ts->columns) * ts->tileWidth;
+                    src.y = (id / ts->columns) * ts->tileHeight;
+                    src.w = ts->tileWidth;
+                    src.h = ts->tileHeight;
 
-                SDL_Rect dst;
-                dst.x = x * m_tileWidth;
-                dst.y = y * m_tileHeight + m_yOffset;
-                dst.w = m_tileWidth;
-                dst.h = m_tileHeight;
+                    SDL_Rect dst;
+                    dst.x = x * m_tileWidth + mapOffsetX - (int)m_cameraX;
+                    dst.y = y * m_tileHeight + m_yOffset;
+                    dst.w = m_tileWidth;
+                    dst.h = m_tileHeight;
 
-                SDL_RenderCopy(sdl, ts->texture, &src, &dst);
+                    SDL_RenderCopy(sdl, ts->texture, &src, &dst);
+                }
             }
         }
     }
@@ -244,51 +259,64 @@ bool TileMap::CheckGroundCollision(
     float playerBottom = py + ph;
     float bestY = 100000.0f;
     bool found = false;
+    
+    int mapPixelWidth = GetMapPixelWidth();
+    
+    // Determine which map instances the player might be colliding with
+    int startMapIndex = (int)floor((px - pw) / mapPixelWidth);
+    int endMapIndex = (int)ceil((px + pw * 2) / mapPixelWidth);
 
-    for (const auto& shape : m_collisionShapes)
+    for (int mapIndex = startMapIndex; mapIndex <= endMapIndex; ++mapIndex)
     {
-        if (shape.type == CollisionType::Rectangle)
+        float mapOffsetX = mapIndex * mapPixelWidth;
+        
+        for (const auto& shape : m_collisionShapes)
         {
-            // Apply offset to collision shape
-            float shapeX = shape.x;
-            float shapeY = shape.y + m_yOffset;
-
-            // Check horizontal overlap
-            if (px + pw <= shapeX) continue;
-            if (px >= shapeX + shape.width) continue;
-
-            // Rectangle's top edge is the ground surface
-            if (playerBottom <= shapeY + 2.0f && shapeY < bestY)
+            if (shape.type == CollisionType::Rectangle)
             {
-                bestY = shapeY;
-                found = true;
-            }
-        }
-        else if (shape.type == CollisionType::Polygon)
-        {
-            // Check each edge of the polygon
-            for (size_t i = 0; i < shape.points.size(); ++i)
-            {
-                const Point& a = shape.points[i];
-                const Point& b = shape.points[(i + 1) % shape.points.size()];
-
-                // Apply offset to polygon points
-                float aY = a.Y + m_yOffset;
-                float bY = b.Y + m_yOffset;
-
-                // Check if edge is horizontal (or nearly horizontal)
-                if (abs((int)aY - (int)bY) > 2) continue;
-
-                float minX = (a.X < b.X) ? a.X : b.X;
-                float maxX = (a.X > b.X) ? a.X : b.X;
+                // Apply offset to collision shape (including map repetition)
+                float shapeX = shape.x + mapOffsetX;
+                float shapeY = shape.y + m_yOffset;
 
                 // Check horizontal overlap
-                if (px + pw > minX && px < maxX)
+                if (px + pw <= shapeX) continue;
+                if (px >= shapeX + shape.width) continue;
+
+                // Rectangle's top edge is the ground surface
+                if (playerBottom <= shapeY + 2.0f && shapeY < bestY)
                 {
-                    if (playerBottom <= aY + 5.0f && aY < bestY)
+                    bestY = shapeY;
+                    found = true;
+                }
+            }
+            else if (shape.type == CollisionType::Polygon)
+            {
+                // Check each edge of the polygon
+                for (size_t i = 0; i < shape.points.size(); ++i)
+                {
+                    const Point& a = shape.points[i];
+                    const Point& b = shape.points[(i + 1) % shape.points.size()];
+
+                    // Apply offset to polygon points (including map repetition)
+                    float aX = a.X + mapOffsetX;
+                    float bX = b.X + mapOffsetX;
+                    float aY = a.Y + m_yOffset;
+                    float bY = b.Y + m_yOffset;
+
+                    // Check if edge is horizontal (or nearly horizontal)
+                    if (abs((int)aY - (int)bY) > 2) continue;
+
+                    float minX = (aX < bX) ? aX : bX;
+                    float maxX = (aX > bX) ? aX : bX;
+
+                    // Check horizontal overlap
+                    if (px + pw > minX && px < maxX)
                     {
-                        bestY = aY;
-                        found = true;
+                        if (playerBottom <= aY + 5.0f && aY < bestY)
+                        {
+                            bestY = aY;
+                            found = true;
+                        }
                     }
                 }
             }

@@ -9,6 +9,7 @@ Player::Player()
 {
 	m_sprite = nullptr;
 	m_position = Point(100, 50);
+	m_worldX = 100.0f;
 	scale = 2.0f;
 
 	// Movement
@@ -59,8 +60,8 @@ void Player::Update(float _deltaTime)
 #pragma region Calculate Movement
 	m_prevY = m_position.Y;
 
-	// Move player
-	m_position.X += m_veloX * _deltaTime;
+	// Move player in world space
+	m_worldX += m_veloX * _deltaTime;
 
 	// Gravity
 	m_veloY += m_gravity * _deltaTime;
@@ -82,7 +83,7 @@ void Player::Update(float _deltaTime)
 	float width = GetWidth();
 	float height = GetHeight();
 
-	float footX = m_position.X + width * 0.5f;
+	float footX = m_worldX + width * 0.5f;
 	float groundY = 0.0f;
 
 	bool foundGround = m_gameMap->CheckGround(
@@ -150,23 +151,27 @@ void Player::Render(Renderer* _renderer)
 	float width = 69 * scale;
 	float height = 44 * scale;
 
-	float x = m_position.X;
-	float y = m_position.Y;
+	// Get camera position from map
+	float cameraX = m_gameMap->GetCameraX();
+	
+	// Convert world position to screen position
+	float screenX = m_worldX - cameraX;
+	float screenY = m_position.Y;
 
 	// Destination on the screen
 	Rect destRect(
-		(unsigned)x,
-		(unsigned)y,
-		(unsigned)(x + width),
-		(unsigned)(y + height));
+		(unsigned)screenX,
+		(unsigned)screenY,
+		(unsigned)(screenX + width),
+		(unsigned)(screenY + height));
 
 	if (!m_facingRight)
 	{
 		destRect = Rect(
-			(unsigned)(x + width),
-			(unsigned)y,
-			(unsigned)x,
-			(unsigned)(y + height)
+			(unsigned)(screenX + width),
+			(unsigned)screenY,
+			(unsigned)screenX,
+			(unsigned)(screenY + height)
 		);
 	}
 
