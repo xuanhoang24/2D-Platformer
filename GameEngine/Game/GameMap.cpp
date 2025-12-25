@@ -23,6 +23,12 @@ void GameMap::Render(Renderer* _renderer, Camera* _camera)
         m_tileMap->Render(_renderer, _camera);
 }
 
+void GameMap::RenderCollisionBoxes(Renderer* _renderer, Camera* _camera)
+{
+    if (m_tileMap)
+        m_tileMap->RenderCollisionBoxes(_renderer, _camera);
+}
+
 bool GameMap::CheckGround(float _x, float _y, float _width, float _height, float& _outGroundY) const
 {
     if (!m_tileMap) return false;

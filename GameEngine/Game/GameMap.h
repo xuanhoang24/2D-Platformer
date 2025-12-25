@@ -15,6 +15,7 @@ public:
 
     bool Load(const string& _file);
     void Render(Renderer* _renderer, Camera* _camera);
+    void RenderCollisionBoxes(Renderer* _renderer, Camera* _camera);
     
     // Collision
     bool CheckGround(float _x, float _y, float _width, float _height, float& _outGroundY) const;
