@@ -8,15 +8,16 @@ Enemy::Enemy()
 	m_animLoader = nullptr;
 	m_worldX = 0.0f;
 	m_worldY = 0.0f;
+	m_baseX = 0.0f;
+	m_baseY = 0.0f;
 	m_isActive = true;
-	m_destroyedInMapLoop = -1; // -1 means never destroyed
+	m_currentMapInstance = 0;
 	m_type = EnemyType::Ghost;
 	m_moveSpeed = 50.0f;
 	m_direction = 1.0f;
-	m_leftBoundary = 0.0f;
-	m_rightBoundary = 0.0f;
+	m_baseLeftBoundary = 0.0f;
+	m_baseRightBoundary = 0.0f;
 	m_gameMap = nullptr;
-	m_lastCameraX = 0.0f;
 }
 
 Enemy::~Enemy()
@@ -34,13 +35,20 @@ void Enemy::Initialize(float x, float y, EnemyType type)
 
 void Enemy::Initialize(float x, float y, EnemyType type, float leftBoundary, float rightBoundary)
 {
-	// Center the sprite horizontally on the spawn point
-	m_worldX = x - (GetWidth() * 0.5f);
-	// Adjust Y so the bottom of the sprite is at the spawn point
-	m_worldY = y - GetHeight();
-	m_leftBoundary = leftBoundary;
-	m_rightBoundary = rightBoundary;
+	// Store base position within single map
+	m_baseX = x - (GetWidth() * 0.5f);
+	m_baseY = y - GetHeight();
+	
+	// Initial world position is same as base
+	m_worldX = m_baseX;
+	m_worldY = m_baseY;
+	
+	// Store base boundaries within single map
+	m_baseLeftBoundary = leftBoundary;
+	m_baseRightBoundary = rightBoundary;
+	
 	m_isActive = true;
+	m_currentMapInstance = 0;
 	m_type = type;
 	
 	m_animLoader = new AnimatedSpriteLoader();
@@ -60,24 +68,38 @@ void Enemy::Initialize(float x, float y, EnemyType type, float leftBoundary, flo
 	m_direction = (rand() % 2 == 0) ? -1.0f : 1.0f;
 }
 
-void Enemy::Update(float _deltaTime)
+void Enemy::Update(float _deltaTime, float _cameraX, int _screenWidth, int _mapPixelWidth)
 {
+	// Check if enemy went behind camera (left of screen) - reposition ahead
+	float cameraLeftEdge = _cameraX;
+	float enemyRightEdge = m_worldX + GetWidth();
+	
+	if (enemyRightEdge < cameraLeftEdge - 50.0f) // 50px buffer behind camera
+	{
+		RepositionAhead(_cameraX, _screenWidth, _mapPixelWidth);
+	}
+	
 	if (!m_isActive)
 		return;
+	
+	// Calculate current boundaries based on map instance
+	float mapOffset = m_currentMapInstance * _mapPixelWidth;
+	float leftBound = m_baseLeftBoundary + mapOffset;
+	float rightBound = m_baseRightBoundary + mapOffset;
 	
 	// Move in current direction
 	m_worldX += m_moveSpeed * m_direction * _deltaTime;
 	
 	// Check if enemy has reached zone boundaries
-	if (m_worldX >= m_rightBoundary)
+	if (m_worldX >= rightBound)
 	{
-		m_direction = -1.0f; // Turn left
-		m_worldX = m_rightBoundary; // Clamp position
+		m_direction = -1.0f;
+		m_worldX = rightBound;
 	}
-	else if (m_worldX <= m_leftBoundary)
+	else if (m_worldX <= leftBound)
 	{
-		m_direction = 1.0f; // Turn right
-		m_worldX = m_leftBoundary; // Clamp position
+		m_direction = 1.0f;
+		m_worldX = leftBound;
 	}
 	
 	// Check map collision
@@ -87,24 +109,46 @@ void Enemy::Update(float _deltaTime)
 		float width = GetWidth();
 		float height = GetHeight();
 		
-		// Check collision based on direction
-		if (m_direction > 0) // Moving right
+		if (m_direction > 0)
 		{
 			if (m_gameMap->CheckCollisionLeft(m_worldX, m_worldY, width, height, wallX))
 			{
-				m_worldX = wallX - width; // Stop at wall
-				m_direction = -1.0f; // Turn around
+				m_worldX = wallX - width;
+				m_direction = -1.0f;
 			}
 		}
-		else // Moving left
+		else
 		{
 			if (m_gameMap->CheckCollisionRight(m_worldX, m_worldY, width, height, wallX))
 			{
-				m_worldX = wallX; // Stop at wall
-				m_direction = 1.0f; // Turn around
+				m_worldX = wallX;
+				m_direction = 1.0f;
 			}
 		}
 	}
+}
+
+void Enemy::RepositionAhead(float _cameraX, int _screenWidth, int _mapPixelWidth)
+{
+	// Calculate which map instance is ahead of camera (right side of screen + buffer)
+	float aheadX = _cameraX + _screenWidth + 100.0f; // 100px buffer ahead
+	int targetMapInstance = (int)floor(aheadX / _mapPixelWidth);
+	
+	// Make sure moving forward, not backward
+	if (targetMapInstance <= m_currentMapInstance)
+		targetMapInstance = m_currentMapInstance + 1;
+	
+	// Update to new map instance
+	m_currentMapInstance = targetMapInstance;
+	
+	// Reset position to base position in new map instance
+	float mapOffset = m_currentMapInstance * _mapPixelWidth;
+	m_worldX = m_baseX + mapOffset;
+	m_worldY = m_baseY;
+	
+	// Reactivate and reset direction
+	m_isActive = true;
+	m_direction = (rand() % 2 == 0) ? -1.0f : 1.0f;
 }
 
 vector<Enemy*> Enemy::SpawnEnemiesFromMap(GameMap* _map)
@@ -116,18 +160,14 @@ vector<Enemy*> Enemy::SpawnEnemiesFromMap(GameMap* _map)
 	
 	srand((unsigned int)time(nullptr));
 	
-	// Get all enemy spawn points from the map
 	const vector<pair<float, float>>& spawnPoints = _map->GetEnemySpawnPoints();
 	
-	// Create an enemy at each spawn point with random type
 	for (const auto& spawn : spawnPoints)
 	{
 		Enemy* enemy = new Enemy();
 		
-		// Randomly choose between Ghost and Mushroom
 		EnemyType randomType = (rand() % 2 == 0) ? EnemyType::Ghost : EnemyType::Mushroom;
 		
-		// Get zone boundaries for this spawn point
 		float leftX = 0.0f;
 		float rightX = 0.0f;
 		_map->GetEnemyZoneBoundaries(spawn.first, spawn.second, leftX, rightX);
@@ -147,78 +187,26 @@ void Enemy::Render(Renderer* _renderer, Camera* _camera)
 	float width = GetWidth();
 	float height = GetHeight();
 	
-	// Get map width for looping
-	int mapPixelWidth = 1600; // 100 tiles * 16 pixels (from map)
+	// Convert world position to screen position
+	float screenX = _camera ? _camera->WorldToScreenX(m_worldX) : m_worldX;
+	float screenY = m_worldY;
 	
-	// Get screen width to determine how many map copies to render
+	// Only render if on screen (with buffer for smooth appearance)
 	Point screenSize = _renderer->GetWindowSize();
-	int screenWidth = screenSize.X;
-	
-	float cameraX = _camera ? _camera->GetX() : 0.0f;
-	
-	// Calculate which map instances we need to render enemies for
-	int startMapIndex = (int)floor((cameraX - width) / mapPixelWidth);
-	int endMapIndex = (int)ceil((cameraX + screenWidth) / mapPixelWidth);
-	
-	// Render enemy at each map instance
-	for (int mapIndex = startMapIndex; mapIndex <= endMapIndex; ++mapIndex)
-	{
-		float mapOffsetX = mapIndex * mapPixelWidth;
-		float worldX = m_worldX + mapOffsetX;
-		
-		// Convert world position to screen position using camera
-		float screenX = _camera ? _camera->WorldToScreenX(worldX) : worldX;
-		float screenY = m_worldY;
-		
-		// Destination on the screen
-		Rect destRect(
-			(unsigned)screenX,
-			(unsigned)screenY,
-			(unsigned)(screenX + width),
-			(unsigned)(screenY + height));
-		
-		string currentAnim = "idle";
-		
-		Rect srcRect = m_animLoader->UpdateAnimation(currentAnim, Timing::Instance().GetDeltaTime());
-		Texture* currentTexture = m_animLoader->GetTexture(currentAnim);
-		
-		if (currentTexture)
-			_renderer->RenderTexture(currentTexture, srcRect, destRect);
-	}
-}
-
-void Enemy::CheckRespawn(float _cameraX, int _mapPixelWidth)
-{
-	// Initialize last camera position on first check
-	if (m_lastCameraX == 0.0f)
-	{
-		m_lastCameraX = _cameraX;
+	if (screenX < -width || screenX > screenSize.X + width)
 		return;
-	}
 	
-	// Add buffer to respawn entities before entering the next map
-	float respawnBuffer = 400.0f; // Respawn 400 pixels before next map starts
+	Rect destRect(
+		(unsigned)screenX,
+		(unsigned)screenY,
+		(unsigned)(screenX + width),
+		(unsigned)(screenY + height));
 	
-	// Calculate which map loop the camera is currently in (with buffer for lookahead)
-	int currentMapLoop = (int)floor((_cameraX + respawnBuffer) / _mapPixelWidth);
-	int lastMapLoop = (int)floor((m_lastCameraX + respawnBuffer) / _mapPixelWidth);
+	string currentAnim = "idle";
 	
-	// If entered a new map loop (with buffer)
-	if (currentMapLoop > lastMapLoop)
-	{
-		// Always respawn when entering a new map loop
-		m_isActive = true;
-		m_destroyedInMapLoop = -1; // Reset destroyed status for new loop
-		
-		// Reset direction randomly
-		m_direction = (rand() % 2 == 0) ? -1.0f : 1.0f;
-		
-		m_lastCameraX = _cameraX;
-	}
-	else if (!m_isActive && m_destroyedInMapLoop == -1)
-	{
-		// Track when enemy is destroyed in current loop (without buffer)
-		int actualCurrentLoop = (int)floor(_cameraX / _mapPixelWidth);
-		m_destroyedInMapLoop = actualCurrentLoop;
-	}
+	Rect srcRect = m_animLoader->UpdateAnimation(currentAnim, Timing::Instance().GetDeltaTime());
+	Texture* currentTexture = m_animLoader->GetTexture(currentAnim);
+	
+	if (currentTexture)
+		_renderer->RenderTexture(currentTexture, srcRect, destRect);
 }

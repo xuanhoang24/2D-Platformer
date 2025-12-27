@@ -8,9 +8,10 @@ Coin::Coin()
 	m_animLoader = nullptr;
 	m_worldX = 0.0f;
 	m_worldY = 0.0f;
+	m_baseX = 0.0f;
+	m_baseY = 0.0f;
 	m_isActive = true;
-	m_collectedInMapLoop = -1; // -1 means never collected
-	m_lastCameraX = 0.0f;
+	m_currentMapInstance = 0;
 }
 
 Coin::~Coin()
@@ -24,51 +25,53 @@ Coin::~Coin()
 
 void Coin::Initialize(float x, float y)
 {
-	// Center the sprite horizontally on the spawn point
-	m_worldX = x - (GetWidth() * 0.5f);
-	// Adjust Y so the bottom of the sprite is at the spawn point
-	m_worldY = y - GetHeight();
+	// Store base position within single map
+	m_baseX = x - (GetWidth() * 0.5f);
+	m_baseY = y - GetHeight();
+	
+	// Initial world position is same as base
+	m_worldX = m_baseX;
+	m_worldY = m_baseY;
+	
 	m_isActive = true;
+	m_currentMapInstance = 0;
 	
 	m_animLoader = new AnimatedSpriteLoader();
 	m_animLoader->LoadAnimation("idle", "../Assets/Textures/Obstacles/coin2.png", 1, 10, 16, 16, 10, 10.0f);
 }
 
-void Coin::Update(float _deltaTime)
+void Coin::Update(float _deltaTime, float _cameraX, int _screenWidth, int _mapPixelWidth)
 {
+	// Check if coin went behind camera (left of screen) - reposition ahead
+	float cameraLeftEdge = _cameraX;
+	float coinRightEdge = m_worldX + GetWidth();
+	
+	if (coinRightEdge < cameraLeftEdge - 50.0f) // 50px buffer behind camera
+	{
+		RepositionAhead(_cameraX, _screenWidth, _mapPixelWidth);
+	}
 }
 
-void Coin::CheckRespawn(float _cameraX, int _mapPixelWidth)
+void Coin::RepositionAhead(float _cameraX, int _screenWidth, int _mapPixelWidth)
 {
-	// Initialize last camera position on first check
-	if (m_lastCameraX == 0.0f)
-	{
-		m_lastCameraX = _cameraX;
-		return;
-	}
+	// Calculate which map instance is ahead of camera (right side of screen + buffer)
+	float aheadX = _cameraX + _screenWidth + 100.0f; // 100px buffer ahead
+	int targetMapInstance = (int)floor(aheadX / _mapPixelWidth);
 	
-	// Add buffer to respawn entities before entering the next map
-	float respawnBuffer = 400.0f; // Respawn 400 pixels before next map starts
+	// Make sure moving forward, not backward
+	if (targetMapInstance <= m_currentMapInstance)
+		targetMapInstance = m_currentMapInstance + 1;
 	
-	// Calculate which map loop the camera is currently in (with buffer for lookahead)
-	int currentMapLoop = (int)floor((_cameraX + respawnBuffer) / _mapPixelWidth);
-	int lastMapLoop = (int)floor((m_lastCameraX + respawnBuffer) / _mapPixelWidth);
+	// Update to new map instance
+	m_currentMapInstance = targetMapInstance;
 	
-	// If entered a new map loop (with buffer)
-	if (currentMapLoop > lastMapLoop)
-	{
-		// Always respawn when entering a new map loop
-		m_isActive = true;
-		m_collectedInMapLoop = -1; // Reset collected status for new loop
-		
-		m_lastCameraX = _cameraX;
-	}
-	else if (!m_isActive && m_collectedInMapLoop == -1)
-	{
-		// Track when coin is collected in current loop (without buffer)
-		int actualCurrentLoop = (int)floor(_cameraX / _mapPixelWidth);
-		m_collectedInMapLoop = actualCurrentLoop;
-	}
+	// Reset position to base position in new map instance
+	float mapOffset = m_currentMapInstance * _mapPixelWidth;
+	m_worldX = m_baseX + mapOffset;
+	m_worldY = m_baseY;
+	
+	// Reactivate coin
+	m_isActive = true;
 }
 
 vector<Coin*> Coin::SpawnCoinsFromMap(GameMap* _map)
@@ -78,10 +81,8 @@ vector<Coin*> Coin::SpawnCoinsFromMap(GameMap* _map)
 	if (!_map)
 		return coins;
 	
-	// Get all coin spawn points from the map
 	const vector<pair<float, float>>& spawnPoints = _map->GetCoinSpawnPoints();
 	
-	// Create a coin at each spawn point
 	for (const auto& spawn : spawnPoints)
 	{
 		Coin* coin = new Coin();
@@ -100,42 +101,26 @@ void Coin::Render(Renderer* _renderer, Camera* _camera)
 	float width = GetWidth();
 	float height = GetHeight();
 	
-	// Get map width for looping
-	int mapPixelWidth = 1600; // 100 tiles * 16 pixels (from map)
+	// Convert world position to screen position
+	float screenX = _camera ? _camera->WorldToScreenX(m_worldX) : m_worldX;
+	float screenY = m_worldY;
 	
-	// Get screen width to determine how many map copies to render
+	// Only render if on screen (with buffer for smooth appearance)
 	Point screenSize = _renderer->GetWindowSize();
-	int screenWidth = screenSize.X;
+	if (screenX < -width || screenX > screenSize.X + width)
+		return;
 	
-	float cameraX = _camera ? _camera->GetX() : 0.0f;
+	Rect destRect(
+		(unsigned)screenX,
+		(unsigned)screenY,
+		(unsigned)(screenX + width),
+		(unsigned)(screenY + height));
 	
-	// Calculate which map instances we need to render coins for
-	int startMapIndex = (int)floor((cameraX - width) / mapPixelWidth);
-	int endMapIndex = (int)ceil((cameraX + screenWidth) / mapPixelWidth);
+	string currentAnim = "idle";
 	
-	// Render coin at each map instance
-	for (int mapIndex = startMapIndex; mapIndex <= endMapIndex; ++mapIndex)
-	{
-		float mapOffsetX = mapIndex * mapPixelWidth;
-		float worldX = m_worldX + mapOffsetX;
-		
-		// Convert world position to screen position using camera
-		float screenX = _camera ? _camera->WorldToScreenX(worldX) : worldX;
-		float screenY = m_worldY;
-		
-		// Destination on the screen
-		Rect destRect(
-			(unsigned)screenX,
-			(unsigned)screenY,
-			(unsigned)(screenX + width),
-			(unsigned)(screenY + height));
-		
-		string currentAnim = "idle";
-		
-		Rect srcRect = m_animLoader->UpdateAnimation(currentAnim, Timing::Instance().GetDeltaTime());
-		Texture* currentTexture = m_animLoader->GetTexture(currentAnim);
-		
-		if (currentTexture)
-			_renderer->RenderTexture(currentTexture, srcRect, destRect);
-	}
+	Rect srcRect = m_animLoader->UpdateAnimation(currentAnim, Timing::Instance().GetDeltaTime());
+	Texture* currentTexture = m_animLoader->GetTexture(currentAnim);
+	
+	if (currentTexture)
+		_renderer->RenderTexture(currentTexture, srcRect, destRect);
 }
