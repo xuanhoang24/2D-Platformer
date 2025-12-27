@@ -14,6 +14,7 @@ class WavDraw;
 class Player;
 class GameMap;
 class Camera;
+class Coin;
 class GameController : public Singleton<GameController>
 {
 public:
@@ -35,6 +36,7 @@ private:
     Player* m_player;
     GameMap* g_Map;
     Camera* m_camera;
+    vector<Coin*> m_coins;
 
     bool m_quit;
 };

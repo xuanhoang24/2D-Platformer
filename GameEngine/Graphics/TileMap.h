@@ -30,6 +30,7 @@ public:
     
     // Spawn point
     bool GetPlayerSpawnPoint(float& outX, float& outY) const;
+    const std::vector<std::pair<float, float>>& GetCoinSpawnPoints() const { return m_coinSpawnPoints; }
     
     // Getters
     int GetMapWidth() const { return m_mapWidth; }
@@ -71,6 +72,7 @@ private:
     void LoadImageLayers();
     void LoadCollisionObjects();
     void LoadSpawnPoint();
+    void LoadCoinSpawnPoints();
     TilesetInfo* FindTileset(int gid);
 
     // Members
@@ -85,6 +87,7 @@ private:
     float m_spawnX = 0.0f;
     float m_spawnY = 0.0f;
     bool m_hasSpawnPoint = false;
+    std::vector<std::pair<float, float>> m_coinSpawnPoints;
 
     // Map info
     int m_mapWidth = 0;

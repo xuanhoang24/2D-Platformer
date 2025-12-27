@@ -1,0 +1,104 @@
+#include "../Game/Coin.h"
+#include "../Game/GameMap.h"
+#include "../Graphics/Camera.h"
+#include "../Core/Timing.h"
+
+Coin::Coin()
+{
+	m_animLoader = nullptr;
+	m_worldX = 0.0f;
+	m_worldY = 0.0f;
+	m_isActive = true;
+}
+
+Coin::~Coin()
+{
+	if (m_animLoader)
+	{
+		delete m_animLoader;
+		m_animLoader = nullptr;
+	}
+}
+
+void Coin::Initialize(float x, float y)
+{
+	m_worldX = x;
+	m_worldY = y;
+	m_isActive = true;
+	
+	m_animLoader = new AnimatedSpriteLoader();
+	m_animLoader->LoadAnimation("idle", "../Assets/Textures/Obstacles/coin2.png", 1, 10, 16, 16, 10, 10.0f);
+}
+
+void Coin::Update(float _deltaTime)
+{
+}
+
+vector<Coin*> Coin::SpawnCoinsFromMap(GameMap* _map)
+{
+	vector<Coin*> coins;
+	
+	if (!_map)
+		return coins;
+	
+	// Get all coin spawn points from the map
+	const vector<pair<float, float>>& spawnPoints = _map->GetCoinSpawnPoints();
+	
+	// Create a coin at each spawn point
+	for (const auto& spawn : spawnPoints)
+	{
+		Coin* coin = new Coin();
+		coin->Initialize(spawn.first, spawn.second);
+		coins.push_back(coin);
+	}
+	
+	return coins;
+}
+
+void Coin::Render(Renderer* _renderer, Camera* _camera)
+{
+	if (!m_isActive)
+		return;
+	
+	float width = GetWidth();
+	float height = GetHeight();
+	
+	// Get map width for looping
+	int mapPixelWidth = 1600; // 100 tiles * 16 pixels (from map)
+	
+	// Get screen width to determine how many map copies to render
+	Point screenSize = _renderer->GetWindowSize();
+	int screenWidth = screenSize.X;
+	
+	float cameraX = _camera ? _camera->GetX() : 0.0f;
+	
+	// Calculate which map instances we need to render coins for
+	int startMapIndex = (int)floor((cameraX - width) / mapPixelWidth);
+	int endMapIndex = (int)ceil((cameraX + screenWidth) / mapPixelWidth);
+	
+	// Render coin at each map instance
+	for (int mapIndex = startMapIndex; mapIndex <= endMapIndex; ++mapIndex)
+	{
+		float mapOffsetX = mapIndex * mapPixelWidth;
+		float worldX = m_worldX + mapOffsetX;
+		
+		// Convert world position to screen position using camera
+		float screenX = _camera ? _camera->WorldToScreenX(worldX) : worldX;
+		float screenY = m_worldY;
+		
+		// Destination on the screen
+		Rect destRect(
+			(unsigned)screenX,
+			(unsigned)screenY,
+			(unsigned)(screenX + width),
+			(unsigned)(screenY + height));
+		
+		string currentAnim = "idle";
+		
+		Rect srcRect = m_animLoader->UpdateAnimation(currentAnim, Timing::Instance().GetDeltaTime());
+		Texture* currentTexture = m_animLoader->GetTexture(currentAnim);
+		
+		if (currentTexture)
+			_renderer->RenderTexture(currentTexture, srcRect, destRect);
+	}
+}

@@ -25,6 +25,7 @@ public:
     
     // Spawn point
     bool GetPlayerSpawnPoint(float& outX, float& outY) const;
+    const vector<pair<float, float>>& GetCoinSpawnPoints() const;
     
     // Getters
     int GetMapPixelWidth() const;

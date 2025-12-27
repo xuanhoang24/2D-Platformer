@@ -59,6 +59,13 @@ bool GameMap::GetPlayerSpawnPoint(float& outX, float& outY) const
     return m_tileMap->GetPlayerSpawnPoint(outX, outY);
 }
 
+const vector<pair<float, float>>& GameMap::GetCoinSpawnPoints() const
+{
+    static vector<pair<float, float>> empty;
+    if (!m_tileMap) return empty;
+    return m_tileMap->GetCoinSpawnPoints();
+}
+
 int GameMap::GetMapPixelWidth() const
 {
     if (m_tileMap)

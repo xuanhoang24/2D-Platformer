@@ -24,6 +24,9 @@ public:
 
     // Auto-detect Image extension
     Asset* LoadImage(const string& _file, ImageInfo* _imageInfo);
+    
+    // Cache for ImageInfo to avoid reprocessing
+    static map<string, ImageInfo> s_imageInfoCache;
 
 private:
     bool IsPNG(const unsigned char* _data, int _size);

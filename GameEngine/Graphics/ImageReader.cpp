@@ -1,6 +1,10 @@
 #include "../Graphics/ImageReader.h"
 #include "../Resources/AssetController.h"
 
+// Initialize static cache
+// Stores image dimensions (width, height, etc.) for each loaded file
+map<string, ImageInfo> ImageReader::s_imageInfoCache;
+
 ImageReader::ImageReader() 
 {
 }
@@ -32,8 +36,19 @@ bool ImageReader::IsTGA(const unsigned char* _data, int size)
 
 Asset* ImageReader::LoadImage(const string& _file, ImageInfo* _imageInfo)
 {
+    // Get the asset from AssetController (may be cached from previous load)
     Asset* raw = AssetController::Instance().GetAsset(_file);
 
+    // Check if we've already loaded this image before
+    // If yes, use the cached ImageInfo instead of processing again
+    if (s_imageInfoCache.count(_file) > 0)
+    {
+        // File was already processed, just copy the cached info
+        *_imageInfo = s_imageInfoCache[_file];
+        return raw;
+    }
+
+    // New File
     unsigned char* data = raw->GetData();
     int size = raw->GetDataSize();
 
@@ -44,14 +59,16 @@ Asset* ImageReader::LoadImage(const string& _file, ImageInfo* _imageInfo)
     if (low.find(".png") != string::npos || IsPNG(data, size))
     {
         PNGReader png;
-        png.ProcessAsset(raw, _imageInfo);  // replaces raw->data with RGBA
+        png.ProcessAsset(raw, _imageInfo);  // Convert PNG to RGBA pixels
+        s_imageInfoCache[_file] = *_imageInfo;  // Save ImageInfo for next time
         return raw;
     }
 
     if (low.find(".tga") != string::npos || IsTGA(data, size))
     {
         TGAReader tga;
-        tga.ProcessAsset(raw, _imageInfo);  // reads TGA header/pixel offset
+        tga.ProcessAsset(raw, _imageInfo);  // Process TGA
+        s_imageInfoCache[_file] = *_imageInfo;  // Save ImageInfo for next time
         return raw;
     }
 
@@ -60,11 +77,13 @@ Asset* ImageReader::LoadImage(const string& _file, ImageInfo* _imageInfo)
     {
         PNGReader png;
         png.ProcessAsset(raw, _imageInfo);
+        s_imageInfoCache[_file] = *_imageInfo;
         return raw;
     }
 
     // Default fallback TGA
     TGAReader tga;
     tga.ProcessAsset(raw, _imageInfo);
+    s_imageInfoCache[_file] = *_imageInfo;
     return raw;
 }

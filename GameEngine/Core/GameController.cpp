@@ -3,6 +3,7 @@
 #include "../Graphics/Camera.h"
 #include "../Input/InputController.h"
 #include "../Game/Player.h"
+#include "../Game/Coin.h"
 #include "../Graphics/SpriteAnim.h"
 #include "../Graphics/SpriteSheet.h"
 #include "../Graphics/Texture.h"
@@ -19,6 +20,7 @@ GameController::GameController()
     m_player = nullptr;
     m_camera = nullptr;
     m_quit = false;
+    m_coins.clear();
 }
 
 GameController::~GameController()
@@ -59,6 +61,9 @@ void GameController::Initialize()
     {
         m_player->SetSpawnPosition(spawnX, spawnY);
     }
+    
+    // Spawn coins from map
+    m_coins = Coin::SpawnCoinsFromMap(g_Map);
 }
 
 void GameController::ShutDown()
@@ -68,6 +73,13 @@ void GameController::ShutDown()
 
     delete m_camera;
     m_camera = nullptr;
+    
+    // Clean up coins
+    for (Coin* coin : m_coins)
+    {
+        delete coin;
+    }
+    m_coins.clear();
 
     delete SpriteAnim::Pool;
     SpriteAnim::Pool = nullptr;
@@ -107,10 +119,23 @@ void GameController::RunGame()
 
         m_player->Update(t->GetDeltaTime());
         
+        // Update coins
+        for (Coin* coin : m_coins)
+        {
+            coin->Update(t->GetDeltaTime());
+        }
+        
         // Update camera to follow player
         m_camera->FollowPlayer(m_player, m_renderer);
         
         g_Map->Render(m_renderer, m_camera);
+        
+        // Render coins
+        for (Coin* coin : m_coins)
+        {
+            coin->Render(m_renderer, m_camera);
+        }
+        
         m_player->Render(m_renderer, m_camera);
         m_player->RenderCollisionBox(m_renderer, m_camera);
         g_Map->RenderCollisionBoxes(m_renderer, m_camera);

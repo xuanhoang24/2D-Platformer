@@ -72,6 +72,9 @@
     <ClCompile Include="Graphics\SpriteAnim.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\AnimatedSpriteLoader.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
     <ClCompile Include="Graphics\TileMap.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
@@ -108,6 +111,9 @@
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\SpriteAnim.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\AnimatedSpriteLoader.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\TileMap.h">
@@ -235,6 +241,9 @@
     <ClCompile Include="Game\Player.cpp">
       <Filter>Game</Filter>
     </ClCompile>
+    <ClCompile Include="Game\Coin.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
     <ClCompile Include="Game\GameMap.cpp">
       <Filter>Game</Filter>
     </ClCompile>
@@ -247,6 +256,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game\Player.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Coin.h">
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="Game\GameMap.h">

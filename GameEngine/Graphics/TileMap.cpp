@@ -27,6 +27,7 @@ bool TileMap::Load(const string& _path)
     LoadLayers();
     LoadCollisionObjects();
     LoadSpawnPoint();
+    LoadCoinSpawnPoints();
 
     return true;
 }
@@ -313,6 +314,43 @@ bool TileMap::GetPlayerSpawnPoint(float& outX, float& outY) const
         return true;
     }
     return false;
+}
+
+void TileMap::LoadCoinSpawnPoints()
+{
+    m_coinSpawnPoints.clear();
+
+    const std::vector<std::unique_ptr<tmx::Layer>>& layers = m_map.getLayers();
+
+    for (size_t i = 0; i < layers.size(); ++i)
+    {
+        if (layers[i]->getType() != tmx::Layer::Type::Group)
+            continue;
+
+        const tmx::LayerGroup& group = layers[i]->getLayerAs<tmx::LayerGroup>();
+        const std::vector<std::unique_ptr<tmx::Layer>>& subLayers = group.getLayers();
+
+        for (size_t j = 0; j < subLayers.size(); ++j)
+        {
+            if (subLayers[j]->getType() != tmx::Layer::Type::Object)
+                continue;
+
+            if (subLayers[j]->getName() != "coinSpawn")
+                continue;
+
+            const tmx::ObjectGroup& objLayer = subLayers[j]->getLayerAs<tmx::ObjectGroup>();
+            const std::vector<tmx::Object>& objects = objLayer.getObjects();
+
+            for (size_t k = 0; k < objects.size(); ++k)
+            {
+                const tmx::Object& coinObj = objects[k];
+                float x = coinObj.getPosition().x;
+                float y = coinObj.getPosition().y;
+                m_coinSpawnPoints.push_back(std::make_pair(x, y));
+            }
+            break;
+        }
+    }
 }
 
 // Check collision from top (player standing on box)
