@@ -30,11 +30,15 @@ public:
 	void GetCollisionBox(float& outX, float& outY, float& outWidth, float& outHeight) const;
 	
 	bool IsMovingDown() const { return m_veloY > 0; }
-	void Die() { m_isDead = true; }
+	void Die();
 	bool IsDead() const { return m_isDead; }
+	bool IsFullyDead() const { return m_isFullyDead; }
 
 private:
 	bool m_isDead;
+	bool m_isFullyDead;
+	float m_deathTimer;
+	float m_deathDuration;
 	AnimatedSpriteLoader* m_animLoader;
 	Point m_position;
 	float m_worldX;

@@ -34,6 +34,9 @@ Player::Player()
 	m_coyoteTimer = 0.0f;
 	
 	m_isDead = false;
+	m_isFullyDead = false;
+	m_deathTimer = 0.0f;
+	m_deathDuration = 1.0f; // Show hurt animation for 1 second
 }
 
 Player::~Player()
@@ -54,13 +57,20 @@ void Player::Initialize()
 	m_animLoader->LoadAnimation("run", "../Assets/Textures/Player/run.png", 1, 4, 16, 16, 4, 12.0f);
 	
 	m_animLoader->LoadAnimation("jumpandfall", "../Assets/Textures/Player/jumpandfall.png", 1, 2, 16, 16, 2, 8.0f);
+	
+	m_animLoader->LoadAnimation("hurt", "../Assets/Textures/Player/hurt.png", 1, 2, 16, 16, 2, 2.0f);
 }
 
 void Player::Update(float _deltaTime)
 {
-	// Handle death
+	// Handle death animation
 	if (m_isDead)
 	{
+		m_deathTimer += _deltaTime;
+		if (m_deathTimer >= m_deathDuration)
+		{
+			m_isFullyDead = true;
+		}
 		return;
 	}
 	
@@ -76,7 +86,7 @@ void Player::Update(float _deltaTime)
 	// Check if player fell below death threshold
 	if (m_position.Y > 260)
 	{
-		m_isDead = true;
+		Die();
 		return;
 	}
 
@@ -197,8 +207,7 @@ void Player::Update(float _deltaTime)
 
 void Player::Render(Renderer* _renderer, Camera* _camera)
 {
-	// Don't render if dead
-	if (m_isDead)
+	if (m_isFullyDead)
 		return;
 	
 	float width = 16 * scale;
@@ -226,7 +235,9 @@ void Player::Render(Renderer* _renderer, Camera* _camera)
 	}
 
 	string currentAnim = "idle";
-	if (!m_isGrounded)
+	if (m_isDead)
+		currentAnim = "hurt";
+	else if (!m_isGrounded)
 		currentAnim = "jumpandfall";
 	else if (m_veloX != 0)
 		currentAnim = "run";
@@ -309,5 +320,16 @@ void Player::HandleInput(SDL_Event _event)
 	}
 
 	m_jumpPressed = keyState[SDL_SCANCODE_SPACE];
+}
+
+void Player::Die()
+{
+	if (!m_isDead)
+	{
+		m_isDead = true;
+		m_deathTimer = 0.0f;
+		m_veloX = 0.0f;
+		m_veloY = 0.0f;
+	}
 }
 
