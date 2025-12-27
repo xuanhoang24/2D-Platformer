@@ -34,7 +34,6 @@ Player::Player()
 	m_coyoteTimer = 0.0f;
 	
 	m_isDead = false;
-	m_deathTimer = 0.0f;
 }
 
 Player::~Player()
@@ -59,14 +58,9 @@ void Player::Initialize()
 
 void Player::Update(float _deltaTime)
 {
-	// Handle death and respawn
+	// Handle death
 	if (m_isDead)
 	{
-		m_deathTimer += _deltaTime;
-		if (m_deathTimer >= RESPAWN_DELAY)
-		{
-			Respawn();
-		}
 		return;
 	}
 	
@@ -78,6 +72,13 @@ void Player::Update(float _deltaTime)
 	m_worldX += m_veloX * _deltaTime;
 	m_veloY += m_gravity * _deltaTime;
 	m_position.Y += (unsigned int)(m_veloY * _deltaTime);
+
+	// Check if player fell below death threshold
+	if (m_position.Y > 260)
+	{
+		m_isDead = true;
+		return;
+	}
 
 	// Prevent player from going above screen
 	if ((int)m_position.Y < 0)
@@ -310,20 +311,3 @@ void Player::HandleInput(SDL_Event _event)
 	m_jumpPressed = keyState[SDL_SCANCODE_SPACE];
 }
 
-void Player::Respawn()
-{
-	m_isDead = false;
-	m_veloX = 0;
-	m_veloY = 0;
-	m_isGrounded = false;
-	m_isJumping = false;
-	
-	if (m_gameMap)
-	{
-		float spawnX, spawnY;
-		if (m_gameMap->GetPlayerSpawnPoint(spawnX, spawnY))
-		{
-			SetSpawnPosition(spawnX, spawnY);
-		}
-	}
-}
