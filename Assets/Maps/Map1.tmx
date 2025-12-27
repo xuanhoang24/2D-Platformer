@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="100" height="17" tilewidth="16" tileheight="16" infinite="0" nextlayerid="11" nextobjectid="30">
+ <tileset firstgid="1" name="grass-tilemap-1" tilewidth="16" tileheight="16" tilecount="91" columns="13">
+  <image source="Images/grass-tilemap-1.png" width="208" height="112"/>
+ </tileset>
+ <tileset firstgid="92" name="boxes" tilewidth="16" tileheight="16" tilecount="3" columns="3">
+  <image source="Images/boxes.png" width="48" height="16"/>
+ </tileset>
+ <tileset firstgid="95" name="flowersAndGrass" tilewidth="16" tileheight="16" tilecount="5" columns="5">
+  <image source="Images/flowersAndGrass.png" width="80" height="16"/>
+ </tileset>
+ <tileset firstgid="100" name="spikes-1" tilewidth="16" tileheight="16" tilecount="4" columns="4">
+  <image source="Images/spikes-1.png" width="64" height="16"/>
+ </tileset>
+ <tileset firstgid="104" name="grass-tilemap-2" tilewidth="16" tileheight="16" tilecount="91" columns="13">
+  <image source="Images/grass-tilemap-2.png" width="208" height="112"/>
+ </tileset>
+ <tileset firstgid="195" name="grass-tilemap-3" tilewidth="16" tileheight="16" tilecount="91" columns="13">
+  <image source="Images/grass-tilemap-3.png" width="208" height="112"/>
+ </tileset>
+ <imagelayer id="3" name="Background 2" repeatx="1">
+  <image source="Images/Tilemap/Background_2.png" width="496" height="272"/>
+ </imagelayer>
+ <imagelayer id="2" name="Background 1" repeatx="1">
+  <image source="Images/Tilemap/Background_1.png" width="496" height="272"/>
+ </imagelayer>
+ <layer id="1" name="Ground" width="100" height="17">
+  <data encoding="base64" compression="zlib">
+   eJzt1VEKgDAIgOFVJ+gW3f+E9VbEcMMZM/0/8FHRlFUKAAAAgBmWK9ZHbHPbSe+oRCRe7q23j+j78DKflz4svW9Me29SHalWK0/Kj7iP2kyt+Vo5X9XKgH34YvUN/r6PkXezN1f7L8i4j5E+LN8LK+zjjl1Zx9IJtJUjIg==
+  </data>
+ </layer>
+ <layer id="4" name="Decoration" width="100" height="17">
+  <data encoding="base64" compression="zlib">
+   eJzt1tEKwCAIhWHf1Lbe/x1mDJlsBl0MNvD/4EBIRhcSiQAAAKCKZtksu6V/exUUoPKPmeu3ewBva3LNl8pz9ldpcl48Q5Mer8eeuI69s34AqKYtZLyj2d8l1nyf/3M8sT7w/gLA6QBhSRa0
+  </data>
+ </layer>
+ <objectgroup id="6" name="Collision">
+  <object id="1" x="0.25" y="176" width="143.5" height="95.75"/>
+  <object id="2" x="224" y="176.25" width="175.5" height="95.75"/>
+  <object id="3" x="464.25" y="144" width="79" height="47.75"/>
+  <object id="4" x="624.25" y="112" width="79.5" height="48"/>
+  <object id="5" x="768.25" y="224" width="175.25" height="47.5"/>
+  <object id="6" x="1008" y="223.75" width="224" height="48.25"/>
+  <object id="7" x="1312.75" y="160.333" width="126.5" height="79.5"/>
+  <object id="8" x="1520.25" y="128.75" width="79.5" height="80.25"/>
+ </objectgroup>
+ <group id="5" name="Spawner">
+  <objectgroup id="10" name="EnemyZone">
+   <object id="20" name="Enemy_Left" x="224" y="176">
+    <point/>
+   </object>
+   <object id="21" name="Enemy_Right" x="400" y="176">
+    <point/>
+   </object>
+   <object id="22" name="Enemy_Left" x="768" y="224">
+    <point/>
+   </object>
+   <object id="24" name="Enemy_Right" x="944" y="224">
+    <point/>
+   </object>
+   <object id="25" name="Enemy_Left" x="1008" y="224">
+    <point/>
+   </object>
+   <object id="27" name="Enemy_Right" x="1232" y="224">
+    <point/>
+   </object>
+   <object id="28" name="Enemy_Left" x="1312" y="160">
+    <point/>
+   </object>
+   <object id="29" name="Enemy_Right" x="1440" y="160">
+    <point/>
+   </object>
+  </objectgroup>
+  <objectgroup id="9" name="EnemySpawner">
+   <object id="16" x="320" y="175.875">
+    <point/>
+   </object>
+   <object id="17" x="864" y="224">
+    <point/>
+   </object>
+   <object id="18" x="1120" y="224">
+    <point/>
+   </object>
+   <object id="19" x="1376" y="160">
+    <point/>
+   </object>
+  </objectgroup>
+  <objectgroup id="8" name="CoinSpawner">
+   <object id="10" x="320" y="111.333">
+    <point/>
+   </object>
+   <object id="11" x="502.667" y="133.333">
+    <point/>
+   </object>
+   <object id="12" x="671.333" y="92.6667">
+    <point/>
+   </object>
+   <object id="13" x="805.333" y="181.333">
+    <point/>
+   </object>
+   <object id="14" x="1118.67" y="174.667">
+    <point/>
+   </object>
+   <object id="15" x="1564.67" y="105.333">
+    <point/>
+   </object>
+  </objectgroup>
+  <objectgroup id="7" name="PlayerSpawn">
+   <object id="9" x="64" y="158.667">
+    <point/>
+   </object>
+  </objectgroup>
+ </group>
+</map>

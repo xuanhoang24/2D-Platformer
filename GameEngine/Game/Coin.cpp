@@ -22,8 +22,10 @@ Coin::~Coin()
 
 void Coin::Initialize(float x, float y)
 {
-	m_worldX = x;
-	m_worldY = y;
+	// Center the sprite horizontally on the spawn point
+	m_worldX = x - (GetWidth() * 0.5f);
+	// Adjust Y so the bottom of the sprite is at the spawn point
+	m_worldY = y - GetHeight();
 	m_isActive = true;
 	
 	m_animLoader = new AnimatedSpriteLoader();

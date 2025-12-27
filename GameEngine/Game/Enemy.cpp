@@ -32,8 +32,10 @@ void Enemy::Initialize(float x, float y, EnemyType type)
 
 void Enemy::Initialize(float x, float y, EnemyType type, float leftBoundary, float rightBoundary)
 {
-	m_worldX = x;
-	m_worldY = y;
+	// Center the sprite horizontally on the spawn point
+	m_worldX = x - (GetWidth() * 0.5f);
+	// Adjust Y so the bottom of the sprite is at the spawn point
+	m_worldY = y - GetHeight();
 	m_leftBoundary = leftBoundary;
 	m_rightBoundary = rightBoundary;
 	m_isActive = true;

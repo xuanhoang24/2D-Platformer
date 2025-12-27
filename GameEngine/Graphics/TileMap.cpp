@@ -184,7 +184,7 @@ void TileMap::LoadCollisionObjects()
         if (layers[i]->getType() != tmx::Layer::Type::Object)
             continue;
 
-        if (layers[i]->getName() != "collision")
+        if (layers[i]->getName() != "Collision")
             continue;
 
         const tmx::ObjectGroup& objLayer = layers[i]->getLayerAs<tmx::ObjectGroup>();
@@ -286,7 +286,7 @@ void TileMap::LoadSpawnPoint()
             if (subLayers[j]->getType() != tmx::Layer::Type::Object)
                 continue;
 
-            if (subLayers[j]->getName() != "playerSpawn")
+            if (subLayers[j]->getName() != "PlayerSpawn")
                 continue;
 
             const tmx::ObjectGroup& objLayer = subLayers[j]->getLayerAs<tmx::ObjectGroup>();
@@ -337,7 +337,7 @@ void TileMap::LoadCoinSpawnPoints()
             if (subLayers[j]->getType() != tmx::Layer::Type::Object)
                 continue;
 
-            if (subLayers[j]->getName() != "coinSpawn")
+            if (subLayers[j]->getName() != "CoinSpawner")
                 continue;
 
             const tmx::ObjectGroup& objLayer = subLayers[j]->getLayerAs<tmx::ObjectGroup>();
@@ -374,7 +374,7 @@ void TileMap::LoadEnemySpawnPoints()
             if (subLayers[j]->getType() != tmx::Layer::Type::Object)
                 continue;
 
-            if (subLayers[j]->getName() != "enemySpawn")
+            if (subLayers[j]->getName() != "EnemySpawner")
                 continue;
 
             const tmx::ObjectGroup& objLayer = subLayers[j]->getLayerAs<tmx::ObjectGroup>();
@@ -400,23 +400,33 @@ void TileMap::LoadEnemyZones()
 
     for (size_t i = 0; i < layers.size(); ++i)
     {
-        if (layers[i]->getType() != tmx::Layer::Type::Object)
+        if (layers[i]->getType() != tmx::Layer::Type::Group)
             continue;
 
-        if (layers[i]->getName() != "enemyZones")
-            continue;
+        const tmx::LayerGroup& group = layers[i]->getLayerAs<tmx::LayerGroup>();
+        const std::vector<std::unique_ptr<tmx::Layer>>& subLayers = group.getLayers();
 
-        const tmx::ObjectGroup& objLayer = layers[i]->getLayerAs<tmx::ObjectGroup>();
-        const std::vector<tmx::Object>& objects = objLayer.getObjects();
-
-        for (size_t j = 0; j < objects.size(); ++j)
+        for (size_t j = 0; j < subLayers.size(); ++j)
         {
-            const tmx::Object& zoneObj = objects[j];
-            float x = zoneObj.getPosition().x;
-            float y = zoneObj.getPosition().y;
-            m_enemyZonePoints.push_back(std::make_pair(x, y));
+            if (subLayers[j]->getType() != tmx::Layer::Type::Object)
+                continue;
+
+            if (subLayers[j]->getName() != "EnemyZone")
+                continue;
+
+            const tmx::ObjectGroup& objLayer = subLayers[j]->getLayerAs<tmx::ObjectGroup>();
+            const std::vector<tmx::Object>& objects = objLayer.getObjects();
+
+            for (size_t k = 0; k < objects.size(); ++k)
+            {
+                const tmx::Object& zoneObj = objects[k];
+                // Center the zone boundary point (subtract half sprite width)
+                float x = zoneObj.getPosition().x - 8.0f; // 8 = 16/2 (half sprite width)
+                float y = zoneObj.getPosition().y;
+                m_enemyZonePoints.push_back(std::make_pair(x, y));
+            }
+            break;
         }
-        break;
     }
 }
 

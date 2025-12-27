@@ -52,7 +52,7 @@ void GameController::Initialize()
 
     // Game Map
     g_Map = new GameMap();
-    g_Map->Load("../Assets/Maps/untitled.tmx");
+    g_Map->Load("../Assets/Maps/Map1.tmx");
     
     // Connect player to map for collision
     m_player->SetGameMap(g_Map);

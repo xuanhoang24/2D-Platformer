@@ -247,8 +247,10 @@ void Player::RenderCollisionBox(Renderer* _renderer, Camera* _camera)
 
 void Player::SetSpawnPosition(float x, float y)
 {
-	m_worldX = x;
-	m_position.Y = (unsigned int)y;
+	// Center the sprite horizontally on the spawn point
+	m_worldX = x - (GetWidth() * 0.5f);
+	// Adjust Y so the bottom of the sprite is at the spawn point
+	m_position.Y = (unsigned int)(y - GetHeight());
 	m_veloY = 0.0f;
 	m_veloX = 0.0f;
 	m_isGrounded = false;
