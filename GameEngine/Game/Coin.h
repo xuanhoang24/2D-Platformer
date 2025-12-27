@@ -27,12 +27,22 @@ public:
 	
 	bool IsActive() const { return m_isActive; }
 	void Collect() { m_isActive = false; }
+	void CheckRespawn(float _cameraX, int _mapPixelWidth);
+	
+	void GetCollisionBox(float& _outX, float& _outY, float& _outWidth, float& _outHeight) const
+	{
+		_outX = m_worldX;
+		_outY = m_worldY;
+		_outWidth = GetWidth();
+		_outHeight = GetHeight();
+	}
 
 private:
 	AnimatedSpriteLoader* m_animLoader;
 	float m_worldX;
 	float m_worldY;
 	bool m_isActive;
+	float m_lastCameraX;
 };
 
 #endif // COIN_H

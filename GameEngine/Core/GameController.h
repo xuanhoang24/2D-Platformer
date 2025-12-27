@@ -30,6 +30,12 @@ public:
     void ShutDown();
 
 private:
+    // Collision detection helper
+    bool CheckAABBCollision(float _x1, float _y1, float _w1, float _h1,
+                           float _x2, float _y2, float _w2, float _h2);
+    void CheckPlayerCoinCollisions();
+    void CheckPlayerEnemyCollisions();
+
     //Members
     SDL_Event m_sdlEvent;
     Renderer* m_renderer;

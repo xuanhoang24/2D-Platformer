@@ -15,6 +15,7 @@ Enemy::Enemy()
 	m_leftBoundary = 0.0f;
 	m_rightBoundary = 0.0f;
 	m_gameMap = nullptr;
+	m_lastCameraX = 0.0f;
 }
 
 Enemy::~Enemy()
@@ -182,5 +183,33 @@ void Enemy::Render(Renderer* _renderer, Camera* _camera)
 		
 		if (currentTexture)
 			_renderer->RenderTexture(currentTexture, srcRect, destRect);
+	}
+}
+
+void Enemy::CheckRespawn(float _cameraX, int _mapPixelWidth)
+{
+	// Initialize last camera position on first check
+	if (m_lastCameraX == 0.0f)
+	{
+		m_lastCameraX = _cameraX;
+		return;
+	}
+	
+	// Add a buffer distance to respawn before player reaches the map start
+	float respawnBuffer = 400.0f; // Respawn 400 pixels before the next map starts
+	float adjustedCameraX = _cameraX + respawnBuffer;
+	
+	// Calculate which map loop the camera is currently in (with buffer)
+	int currentMapLoop = (int)floor(adjustedCameraX / _mapPixelWidth);
+	int lastMapLoop = (int)floor((m_lastCameraX + respawnBuffer) / _mapPixelWidth);
+	
+	// If entered a new map loop, respawn the enemy
+	if (currentMapLoop > lastMapLoop)
+	{
+		m_isActive = true;
+		m_lastCameraX = _cameraX;
+		
+		// Reset direction randomly
+		m_direction = (rand() % 2 == 0) ? -1.0f : 1.0f;
 	}
 }

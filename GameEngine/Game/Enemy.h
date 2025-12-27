@@ -36,8 +36,17 @@ public:
 	
 	bool IsActive() const { return m_isActive; }
 	void Destroy() { m_isActive = false; }
+	void CheckRespawn(float cameraX, int mapPixelWidth);
 	
 	EnemyType GetType() const { return m_type; }
+	
+	void GetCollisionBox(float& outX, float& outY, float& outWidth, float& outHeight) const
+	{
+		outX = m_worldX;
+		outY = m_worldY;
+		outWidth = GetWidth();
+		outHeight = GetHeight();
+	}
 
 private:
 	AnimatedSpriteLoader* m_animLoader;
@@ -45,6 +54,7 @@ private:
 	float m_worldY;
 	bool m_isActive;
 	EnemyType m_type;
+	float m_lastCameraX;
 	
 	// Movement
 	float m_moveSpeed;

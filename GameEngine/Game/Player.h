@@ -28,8 +28,16 @@ public:
 	float GetWorldY() const { return m_position.Y; }
 
 	void GetCollisionBox(float& outX, float& outY, float& outWidth, float& outHeight) const;
+	
+	bool IsMovingDown() const { return m_veloY > 0; }
+	void Die() { m_isDead = true; m_deathTimer = 0.0f; }
+	bool IsDead() const { return m_isDead; }
+	void Respawn();
 
 private:
+	bool m_isDead;
+	float m_deathTimer;
+	static constexpr float RESPAWN_DELAY = 2.0f;
 	AnimatedSpriteLoader* m_animLoader;
 	Point m_position;
 	float m_worldX;

@@ -131,17 +131,27 @@ void GameController::RunGame()
 
         m_player->Update(t->GetDeltaTime());
         
+        // Get camera position for respawn checks
+        float cameraX = m_camera->GetX();
+        int mapPixelWidth = 1600; // 100 tiles * 16 pixels
+        
         // Update coins
         for (Coin* coin : m_coins)
         {
             coin->Update(t->GetDeltaTime());
+            coin->CheckRespawn(cameraX, mapPixelWidth);
         }
         
         // Update enemies
         for (Enemy* enemy : m_enemies)
         {
             enemy->Update(t->GetDeltaTime());
+            enemy->CheckRespawn(cameraX, mapPixelWidth);
         }
+        
+        // Check collisions
+        CheckPlayerCoinCollisions();
+        CheckPlayerEnemyCollisions();
         
         // Update camera to follow player
         m_camera->FollowPlayer(m_player, m_renderer);
@@ -166,5 +176,106 @@ void GameController::RunGame()
 
         t->CapFPS();
         SDL_RenderPresent(m_renderer->GetRenderer());
+    }
+}
+
+bool GameController::CheckAABBCollision(float _x1, float _y1, float _w1, float _h1,
+                                        float _x2, float _y2, float _w2, float _h2)
+{
+    return (_x1 < _x2 + _w2 &&
+            _x1 + _w1 > _x2 &&
+            _y1 < _y2 + _h2 &&
+            _y1 + _h1 > _y2);
+}
+
+void GameController::CheckPlayerCoinCollisions()
+{
+    if (m_player->IsDead())
+        return;
+    
+    float playerX, playerY, playerW, playerH;
+    m_player->GetCollisionBox(playerX, playerY, playerW, playerH);
+    
+    // Get map width for looping collision detection
+    int mapPixelWidth = 1600; // 100 tiles * 16 pixels
+    
+    for (Coin* coin : m_coins)
+    {
+        if (!coin->IsActive())
+            continue;
+        
+        float coinX, coinY, coinW, coinH;
+        coin->GetCollisionBox(coinX, coinY, coinW, coinH);
+        
+        // Check collision with coin in all map instances
+        int startMapIndex = (int)floor((playerX - coinW) / mapPixelWidth);
+        int endMapIndex = (int)ceil((playerX + playerW) / mapPixelWidth);
+        
+        for (int mapIndex = startMapIndex; mapIndex <= endMapIndex; ++mapIndex)
+        {
+            float mapOffsetX = mapIndex * mapPixelWidth;
+            float adjustedCoinX = coinX + mapOffsetX;
+            
+            if (CheckAABBCollision(playerX, playerY, playerW, playerH,
+                                  adjustedCoinX, coinY, coinW, coinH))
+            {
+                coin->Collect();
+                break; // Coin collected, no need to check other map instances
+            }
+        }
+    }
+}
+
+void GameController::CheckPlayerEnemyCollisions()
+{
+    if (m_player->IsDead())
+        return;
+    
+    float playerX, playerY, playerW, playerH;
+    m_player->GetCollisionBox(playerX, playerY, playerW, playerH);
+    
+    // Get map width for looping collision detection
+    int mapPixelWidth = 1600; // 100 tiles * 16 pixels
+    
+    for (Enemy* enemy : m_enemies)
+    {
+        if (!enemy->IsActive())
+            continue;
+        
+        float enemyX, enemyY, enemyW, enemyH;
+        enemy->GetCollisionBox(enemyX, enemyY, enemyW, enemyH);
+        
+        // Check collision with enemy in all map instances
+        int startMapIndex = (int)floor((playerX - enemyW) / mapPixelWidth);
+        int endMapIndex = (int)ceil((playerX + playerW) / mapPixelWidth);
+        
+        for (int mapIndex = startMapIndex; mapIndex <= endMapIndex; ++mapIndex)
+        {
+            float mapOffsetX = mapIndex * mapPixelWidth;
+            float adjustedEnemyX = enemyX + mapOffsetX;
+            
+            if (CheckAABBCollision(playerX, playerY, playerW, playerH,
+                                  adjustedEnemyX, enemyY, enemyW, enemyH))
+            {
+                // Check if player is jumping on top of enemy
+                float playerBottom = playerY + playerH;
+                float enemyTop = enemyY;
+                float verticalOverlap = playerBottom - enemyTop;
+                
+                // If player is falling and hits enemy from above (small vertical overlap)
+                if (m_player->IsMovingDown() && verticalOverlap < playerH * 0.5f)
+                {
+                    // Kill the enemy
+                    enemy->Destroy();
+                }
+                else
+                {
+                    // Player hit enemy from side or below - player dies
+                    m_player->Die();
+                }
+                
+                break;
+            }
+        }
     }
 }

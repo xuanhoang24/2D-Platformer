@@ -32,6 +32,9 @@ Player::Player()
 	m_jumpMaxHoldTime = 0.2f;
 	m_coyoteTime = 0.12f;
 	m_coyoteTimer = 0.0f;
+	
+	m_isDead = false;
+	m_deathTimer = 0.0f;
 }
 
 Player::~Player()
@@ -56,6 +59,17 @@ void Player::Initialize()
 
 void Player::Update(float _deltaTime)
 {
+	// Handle death and respawn
+	if (m_isDead)
+	{
+		m_deathTimer += _deltaTime;
+		if (m_deathTimer >= RESPAWN_DELAY)
+		{
+			Respawn();
+		}
+		return;
+	}
+	
 	// Clamp deltaTime to prevent huge jumps during loading
 	if (_deltaTime > 0.033f)
 		_deltaTime = 0.033f;
@@ -182,6 +196,10 @@ void Player::Update(float _deltaTime)
 
 void Player::Render(Renderer* _renderer, Camera* _camera)
 {
+	// Don't render if dead
+	if (m_isDead)
+		return;
+	
 	float width = 16 * scale;
 	float height = 16 * scale;
 
@@ -290,4 +308,22 @@ void Player::HandleInput(SDL_Event _event)
 	}
 
 	m_jumpPressed = keyState[SDL_SCANCODE_SPACE];
+}
+
+void Player::Respawn()
+{
+	m_isDead = false;
+	m_veloX = 0;
+	m_veloY = 0;
+	m_isGrounded = false;
+	m_isJumping = false;
+	
+	if (m_gameMap)
+	{
+		float spawnX, spawnY;
+		if (m_gameMap->GetPlayerSpawnPoint(spawnX, spawnY))
+		{
+			SetSpawnPosition(spawnX, spawnY);
+		}
+	}
 }

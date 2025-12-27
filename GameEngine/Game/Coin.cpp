@@ -9,6 +9,7 @@ Coin::Coin()
 	m_worldX = 0.0f;
 	m_worldY = 0.0f;
 	m_isActive = true;
+	m_lastCameraX = 0.0f;
 }
 
 Coin::~Coin()
@@ -34,6 +35,31 @@ void Coin::Initialize(float x, float y)
 
 void Coin::Update(float _deltaTime)
 {
+}
+
+void Coin::CheckRespawn(float _cameraX, int _mapPixelWidth)
+{
+	// Initialize last camera position on first check
+	if (m_lastCameraX == 0.0f)
+	{
+		m_lastCameraX = _cameraX;
+		return;
+	}
+	
+	// Add a buffer distance to respawn before player reaches the map start
+	float respawnBuffer = 400.0f; // Respawn 400 pixels before the next map starts
+	float adjustedCameraX = _cameraX + respawnBuffer;
+	
+	// Calculate which map loop the camera is currently in (with buffer)
+	int currentMapLoop = (int)floor(adjustedCameraX / _mapPixelWidth);
+	int lastMapLoop = (int)floor((m_lastCameraX + respawnBuffer) / _mapPixelWidth);
+	
+	// If entered a new map loop, respawn the coin
+	if (currentMapLoop > lastMapLoop)
+	{
+		m_isActive = true;
+		m_lastCameraX = _cameraX;
+	}
 }
 
 vector<Coin*> Coin::SpawnCoinsFromMap(GameMap* _map)
