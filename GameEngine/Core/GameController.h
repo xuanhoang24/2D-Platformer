@@ -6,7 +6,6 @@
 
 class Renderer;
 class TTFont;
-class TTFont;
 class InputController;
 class AudioController;
 class SoundEffect;
@@ -17,6 +16,7 @@ class GameMap;
 class Camera;
 class Coin;
 class Enemy;
+class GameUI;
 class GameController : public Singleton<GameController>
 {
 public:
@@ -36,6 +36,7 @@ private:
                            float _x2, float _y2, float _w2, float _h2);
     void CheckPlayerCoinCollisions();
     void CheckPlayerEnemyCollisions();
+    void RestartGame();
 
     //Members
     SDL_Event m_sdlEvent;
@@ -44,7 +45,7 @@ private:
     Player* m_player;
     GameMap* g_Map;
     Camera* m_camera;
-    TTFont* m_font;
+    GameUI* m_gameUI;
     vector<Coin*> m_coins;
     vector<Enemy*> m_enemies;
     int m_score;

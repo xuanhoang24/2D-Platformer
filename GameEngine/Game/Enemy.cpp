@@ -51,18 +51,7 @@ void Enemy::Initialize(float x, float y, EnemyType type, float leftBoundary, flo
 	m_currentMapInstance = 0;
 	m_type = type;
 	
-	m_animLoader = new AnimatedSpriteLoader();
-	
-	if (m_type == EnemyType::Ghost)
-	{
-		m_animLoader->LoadAnimation("idle", "../Assets/Textures/Enemy/ghost1_fly.png", 1, 6, 16, 16, 6, 10.0f);
-		m_moveSpeed = 30.0f;
-	}
-	else if (m_type == EnemyType::Mushroom)
-	{
-		m_animLoader->LoadAnimation("idle", "../Assets/Textures/Enemy/mushroom-walk.png", 1, 10, 16, 16, 10, 10.0f);
-		m_moveSpeed = 40.0f;
-	}
+	RandomEnemy();
 	
 	// Random initial direction
 	m_direction = (rand() % 2 == 0) ? -1.0f : 1.0f;
@@ -209,4 +198,44 @@ void Enemy::Render(Renderer* _renderer, Camera* _camera)
 	
 	if (currentTexture)
 		_renderer->RenderTexture(currentTexture, srcRect, destRect);
+}
+
+void Enemy::Reset()
+{
+	// Reset to original spawn position
+	m_worldX = m_baseX;
+	m_worldY = m_baseY;
+	m_currentMapInstance = 0;
+	m_isActive = true;
+	m_direction = (rand() % 2 == 0) ? -1.0f : 1.0f;
+	
+	// Randomize enemy type on reset
+	EnemyType newType = (rand() % 2 == 0) ? EnemyType::Ghost : EnemyType::Mushroom;
+	if (newType != m_type)
+	{
+		m_type = newType;
+		RandomEnemy();
+	}
+}
+
+void Enemy::RandomEnemy()
+{
+	if (m_animLoader)
+	{
+		delete m_animLoader;
+		m_animLoader = nullptr;
+	}
+	
+	m_animLoader = new AnimatedSpriteLoader();
+	
+	if (m_type == EnemyType::Ghost)
+	{
+		m_animLoader->LoadAnimation("idle", "../Assets/Textures/Enemy/ghost1_fly.png", 1, 6, 16, 16, 6, 10.0f);
+		m_moveSpeed = 30.0f;
+	}
+	else
+	{
+		m_animLoader->LoadAnimation("idle", "../Assets/Textures/Enemy/mushroom-walk.png", 1, 10, 16, 16, 10, 10.0f);
+		m_moveSpeed = 40.0f;
+	}
 }

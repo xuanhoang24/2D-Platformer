@@ -42,7 +42,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -232,6 +232,7 @@ copy /y "$(SolutionDir)External\SDL2_image-2.8.8\lib\x64\SDL2_image.dll" "$(Targ
     <ClCompile Include="Game\Coin.cpp" />
     <ClCompile Include="Game\Enemy.cpp" />
     <ClCompile Include="Game\GameMap.cpp" />
+    <ClCompile Include="Game\GameUI.cpp" />
     <ClCompile Include="Game\Level.cpp" />
     <ClCompile Include="Game\Unit.cpp" />
   </ItemGroup>
@@ -240,6 +241,7 @@ copy /y "$(SolutionDir)External\SDL2_image-2.8.8\lib\x64\SDL2_image.dll" "$(Targ
     <ClInclude Include="Game\Coin.h" />
     <ClInclude Include="Game\Enemy.h" />
     <ClInclude Include="Game\GameMap.h" />
+    <ClInclude Include="Game\GameUI.h" />
     <ClInclude Include="Game\Level.h" />
     <ClInclude Include="Game\Unit.h" />
   </ItemGroup>

@@ -25,6 +25,7 @@ public:
 	void SetX(float _x) { m_x = _x; m_maxX = _x; }
 	void SetY(float _y) { m_y = _y; }
 	void SetPosition(float _x, float _y);
+	void Reset();
 
 	// World to screen conversion
 	float WorldToScreenX(float _worldX) const;

@@ -38,6 +38,7 @@ public:
 	
 	bool IsActive() const { return m_isActive; }
 	void Destroy() { m_isActive = false; }
+	void Reset();
 	
 	// Reposition enemy to next map instance in front of camera
 	void RepositionAhead(float _cameraX, int _screenWidth, int _mapPixelWidth);
@@ -53,6 +54,8 @@ public:
 	}
 
 private:
+	void RandomEnemy();
+	
 	AnimatedSpriteLoader* m_animLoader;
 	float m_worldX;      // Current world X position
 	float m_worldY;      // Current world Y position

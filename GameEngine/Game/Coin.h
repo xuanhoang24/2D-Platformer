@@ -44,6 +44,7 @@ public:
 	
 	bool IsActive() const { return m_isActive; }
 	void Collect() { m_isActive = false; }
+	void Reset();
 	
 	CoinType GetCoinType() const { return m_coinType; }
 	int GetPointValue() const { return m_pointValue; }
@@ -60,6 +61,7 @@ public:
 	}
 
 private:
+	void RandomCoin();
 	void SetCoinTexture(const CoinTextureInfo& texInfo);
 	
 	AnimatedSpriteLoader* m_animLoader;

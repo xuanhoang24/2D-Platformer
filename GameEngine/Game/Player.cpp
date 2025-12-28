@@ -333,3 +333,16 @@ void Player::Die()
 	}
 }
 
+
+void Player::Reset()
+{
+	m_isDead = false;
+	m_isFullyDead = false;
+	m_deathTimer = 0.0f;
+	m_veloX = 0.0f;
+	m_veloY = 0.0f;
+	m_isGrounded = false;
+	m_isJumping = false;
+	m_jumpPressed = false;
+	m_facingRight = true;
+}

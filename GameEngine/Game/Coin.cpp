@@ -55,11 +55,7 @@ void Coin::Initialize(float x, float y)
 	m_isActive = true;
 	m_currentMapInstance = 0;
 	
-	m_animLoader = new AnimatedSpriteLoader();
-	CoinTextureInfo texInfo = GetRandomCoinTexture();
-	m_coinType = texInfo.type;
-	m_pointValue = texInfo.pointValue;
-	m_animLoader->LoadAnimation("idle", texInfo.path, 1, texInfo.frameCount, 16, 16, texInfo.frameCount, 10.0f);
+	RandomCoin();
 }
 
 void Coin::Update(float _deltaTime, float _cameraX, int _screenWidth, int _mapPixelWidth)
@@ -93,15 +89,7 @@ void Coin::RepositionAhead(float _cameraX, int _screenWidth, int _mapPixelWidth)
 	m_worldY = m_baseY;
 	
 	// Randomize coin texture on respawn
-	if (m_animLoader)
-	{
-		delete m_animLoader;
-		m_animLoader = new AnimatedSpriteLoader();
-		CoinTextureInfo texInfo = GetRandomCoinTexture();
-		m_coinType = texInfo.type;
-		m_pointValue = texInfo.pointValue;
-		m_animLoader->LoadAnimation("idle", texInfo.path, 1, texInfo.frameCount, 16, 16, texInfo.frameCount, 10.0f);
-	}
+	RandomCoin();
 	
 	// Reactivate coin
 	m_isActive = true;
@@ -156,4 +144,31 @@ void Coin::Render(Renderer* _renderer, Camera* _camera)
 	
 	if (currentTexture)
 		_renderer->RenderTexture(currentTexture, srcRect, destRect);
+}
+
+void Coin::Reset()
+{
+	// Reset to original spawn position
+	m_worldX = m_baseX;
+	m_worldY = m_baseY;
+	m_currentMapInstance = 0;
+	m_isActive = true;
+	
+	// Randomize coin type on reset
+	RandomCoin();
+}
+
+void Coin::RandomCoin()
+{
+	if (m_animLoader)
+	{
+		delete m_animLoader;
+		m_animLoader = nullptr;
+	}
+	
+	m_animLoader = new AnimatedSpriteLoader();
+	CoinTextureInfo texInfo = GetRandomCoinTexture();
+	m_coinType = texInfo.type;
+	m_pointValue = texInfo.pointValue;
+	m_animLoader->LoadAnimation("idle", texInfo.path, 1, texInfo.frameCount, 16, 16, texInfo.frameCount, 10.0f);
 }

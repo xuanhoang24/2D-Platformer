@@ -6,6 +6,7 @@
 #include "../Game/Player.h"
 #include "../Game/Coin.h"
 #include "../Game/Enemy.h"
+#include "../Game/GameUI.h"
 #include "../Graphics/SpriteAnim.h"
 #include "../Graphics/SpriteSheet.h"
 #include "../Graphics/Texture.h"
@@ -13,7 +14,6 @@
 #include "../Input/Keyboard.h"
 #include "../Core/Timing.h"
 #include "../Game/GameMap.h"
-#include <sstream>
 
 GameController::GameController()
 {
@@ -22,7 +22,7 @@ GameController::GameController()
     m_input = nullptr;
     m_player = nullptr;
     m_camera = nullptr;
-    m_font = nullptr;
+    m_gameUI = nullptr;
     m_quit = false;
     m_score = 0;
     m_coins.clear();
@@ -74,16 +74,16 @@ void GameController::Initialize()
     // Spawn enemies from map
     m_enemies = Enemy::SpawnEnemiesFromMap(g_Map);
     
-    // Initialize font for score display
-    m_font = new TTFont();
-    m_font->Initialize(24);
+    // Initialize UI
+    m_gameUI = new GameUI();
+    m_gameUI->Initialize();
     m_score = 0;
 }
 
 void GameController::ShutDown()
 {
-    delete m_font;
-    m_font = nullptr;
+    delete m_gameUI;
+    m_gameUI = nullptr;
     
     delete m_player;
     m_player = nullptr;
@@ -119,10 +119,28 @@ void GameController::HandleInput(SDL_Event _event)
 {
     if (_event.type == SDL_QUIT)
         m_quit = true;
-    if ((m_sdlEvent.type == SDL_QUIT) || (m_input->KB()->KeyUp(m_sdlEvent, SDLK_ESCAPE)))
+    
+    m_gameUI->HandleInput(_event);
+    
+    // Handle UI requests
+    if (m_gameUI->IsStartRequested())
+    {
+        m_gameUI->SetState(UIState::Playing);
+    }
+    if (m_gameUI->IsRestartRequested())
+    {
+        RestartGame();
+    }
+    if (m_gameUI->IsExitRequested())
+    {
         m_quit = true;
-
-    m_player->HandleInput(_event);
+    }
+    
+    // Only handle player input when playing
+    if (m_gameUI->GetState() == UIState::Playing)
+    {
+        m_player->HandleInput(_event);
+    }
 }
 
 void GameController::RunGame()
@@ -140,6 +158,21 @@ void GameController::RunGame()
 
         while (SDL_PollEvent(&m_sdlEvent) != 0)
             HandleInput(m_sdlEvent);
+
+        // Handle Start Screen state
+        if (m_gameUI->GetState() == UIState::StartScreen)
+        {
+            m_gameUI->Render(m_renderer, m_score);
+            t->CapFPS();
+            SDL_RenderPresent(m_renderer->GetRenderer());
+            continue;
+        }
+
+        // Update game state to GameOver when player dies
+        if (m_player->IsFullyDead() && m_gameUI->GetState() == UIState::Playing)
+        {
+            m_gameUI->SetState(UIState::GameOver);
+        }
 
         m_player->Update(t->GetDeltaTime());
         
@@ -197,12 +230,8 @@ void GameController::RunGame()
         m_player->RenderCollisionBox(m_renderer, m_camera);
         g_Map->RenderCollisionBoxes(m_renderer, m_camera);
         
-        // Render score UI
-        std::stringstream ss;
-        ss << "Score: " << m_score;
-        SDL_Color white = { 255, 255, 255, 255 };
-        SDL_Point scorePos = { 10, 10 };
-        m_font->Write(m_renderer->GetRenderer(), ss.str().c_str(), white, scorePos);
+        // Render UI (score and game over overlay)
+        m_gameUI->Render(m_renderer, m_score);
 
         t->CapFPS();
         SDL_RenderPresent(m_renderer->GetRenderer());
@@ -284,4 +313,32 @@ void GameController::CheckPlayerEnemyCollisions()
             break;
         }
     }
+}
+
+
+void GameController::RestartGame()
+{
+    m_player->Reset();
+    
+    float spawnX, spawnY;
+    if (g_Map->GetPlayerSpawnPoint(spawnX, spawnY))
+    {
+        m_player->SetSpawnPosition(spawnX, spawnY);
+    }
+    
+    m_camera->Reset();
+    
+    for (Coin* coin : m_coins)
+    {
+        coin->Reset();
+    }
+    
+    for (Enemy* enemy : m_enemies)
+    {
+        enemy->Reset();
+    }
+    
+    m_score = 0;
+    
+    m_gameUI->SetState(UIState::Playing);
 }

@@ -12,8 +12,11 @@ TTFont::~TTFont()
 }
 void TTFont::Initialize(int _pointSize)
 {
-	M_ASSERT((TTF_Init() >= 0), "Unable t initialize SDLL TTF.");
-	M_ASSERT((m_font = TTF_OpenFont("../Assets/Fonts/arial.ttf", _pointSize)) != nullptr, "Faild to load font");
+	if (!TTF_WasInit())
+	{
+		M_ASSERT((TTF_Init() >= 0), "Unable to initialize SDL TTF.");
+	}
+	M_ASSERT((m_font = TTF_OpenFont("../Assets/Fonts/arial.ttf", _pointSize)) != nullptr, "Failed to load font");
 }
 
 void TTFont::Shutdown()
@@ -36,4 +39,17 @@ void TTFont::Write(SDL_Renderer* _renderer, const char* _text, SDL_Color _color,
 	
 	SDL_FreeSurface(surface);
 	SDL_DestroyTexture(texture);
+}
+
+void TTFont::GetTextSize(const char* _text, int* _width, int* _height)
+{
+	if (m_font && strlen(_text) > 0)
+	{
+		TTF_SizeText(m_font, _text, _width, _height);
+	}
+	else
+	{
+		*_width = 0;
+		*_height = 0;
+	}
 }

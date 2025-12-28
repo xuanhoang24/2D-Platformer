@@ -85,3 +85,10 @@ float Camera::ScreenToWorldY(float _screenY) const
 {
 	return _screenY + m_y;
 }
+
+void Camera::Reset()
+{
+	m_x = 0.0f;
+	m_y = 0.0f;
+	m_maxX = 0.0f;
+}

@@ -33,6 +33,7 @@ public:
 	void Die();
 	bool IsDead() const { return m_isDead; }
 	bool IsFullyDead() const { return m_isFullyDead; }
+	void Reset();
 
 private:
 	bool m_isDead;
