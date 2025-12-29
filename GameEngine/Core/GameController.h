@@ -31,6 +31,8 @@ public:
 
 private:
     void RestartGame();
+    void UpdateCollisions();
+    void RenderEntities();
 
     //Members
     SDL_Event m_sdlEvent;

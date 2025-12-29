@@ -1,5 +1,4 @@
 #include "../Game/Coin.h"
-#include "../Game/GameMap.h"
 #include "../Graphics/Camera.h"
 #include "../Core/Timing.h"
 #include <random>
@@ -93,25 +92,6 @@ void Coin::RepositionAhead(float _cameraX, int _screenWidth, int _mapPixelWidth)
 	
 	// Reactivate coin
 	m_isActive = true;
-}
-
-vector<Coin*> Coin::SpawnCoinsFromMap(GameMap* _map)
-{
-	vector<Coin*> coins;
-	
-	if (!_map)
-		return coins;
-	
-	const vector<pair<float, float>>& spawnPoints = _map->GetCoinSpawnPoints();
-	
-	for (const auto& spawn : spawnPoints)
-	{
-		Coin* coin = new Coin();
-		coin->Initialize(spawn.first, spawn.second);
-		coins.push_back(coin);
-	}
-	
-	return coins;
 }
 
 void Coin::Render(Renderer* _renderer, Camera* _camera)

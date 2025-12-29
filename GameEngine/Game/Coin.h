@@ -6,7 +6,6 @@
 #include "../Graphics/AnimatedSpriteLoader.h"
 
 class Camera;
-class GameMap;
 
 enum class CoinType
 {
@@ -32,8 +31,6 @@ public:
 	void Initialize(float x, float y);
 	void Update(float _deltaTime, float _cameraX, int _screenWidth, int _mapPixelWidth);
 	void Render(Renderer* _renderer, Camera* _camera);
-	
-	static vector<Coin*> SpawnCoinsFromMap(GameMap* _map);
 	
 	float GetWorldX() const { return m_worldX; }
 	float GetWorldY() const { return m_worldY; }

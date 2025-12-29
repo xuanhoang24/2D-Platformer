@@ -1,5 +1,4 @@
 #include "../Game/Enemy.h"
-#include "../Game/GameMap.h"
 #include "../Graphics/Camera.h"
 #include "../Core/Timing.h"
 
@@ -17,7 +16,6 @@ Enemy::Enemy()
 	m_direction = 1.0f;
 	m_baseLeftBoundary = 0.0f;
 	m_baseRightBoundary = 0.0f;
-	m_gameMap = nullptr;
 }
 
 Enemy::~Enemy()
@@ -90,31 +88,6 @@ void Enemy::Update(float _deltaTime, float _cameraX, int _screenWidth, int _mapP
 		m_direction = 1.0f;
 		m_worldX = leftBound;
 	}
-	
-	// Check map collision
-	if (m_gameMap)
-	{
-		float wallX;
-		float width = GetWidth();
-		float height = GetHeight();
-		
-		if (m_direction > 0)
-		{
-			if (m_gameMap->CheckCollisionLeft(m_worldX, m_worldY, width, height, wallX))
-			{
-				m_worldX = wallX - width;
-				m_direction = -1.0f;
-			}
-		}
-		else
-		{
-			if (m_gameMap->CheckCollisionRight(m_worldX, m_worldY, width, height, wallX))
-			{
-				m_worldX = wallX;
-				m_direction = 1.0f;
-			}
-		}
-	}
 }
 
 void Enemy::RepositionAhead(float _cameraX, int _screenWidth, int _mapPixelWidth)
@@ -138,34 +111,6 @@ void Enemy::RepositionAhead(float _cameraX, int _screenWidth, int _mapPixelWidth
 	// Reactivate and reset direction
 	m_isActive = true;
 	m_direction = (rand() % 2 == 0) ? -1.0f : 1.0f;
-}
-
-vector<Enemy*> Enemy::SpawnEnemiesFromMap(GameMap* _map)
-{
-	vector<Enemy*> enemies;
-	
-	if (!_map)
-		return enemies;
-	
-	srand((unsigned int)time(nullptr));
-	
-	const vector<pair<float, float>>& spawnPoints = _map->GetEnemySpawnPoints();
-	
-	for (const auto& spawn : spawnPoints)
-	{
-		Enemy* enemy = new Enemy();
-		
-		EnemyType randomType = (rand() % 2 == 0) ? EnemyType::Ghost : EnemyType::Mushroom;
-		
-		float leftX = 0.0f;
-		float rightX = 0.0f;
-		_map->GetEnemyZoneBoundaries(spawn.first, spawn.second, leftX, rightX);
-		
-		enemy->Initialize(spawn.first, spawn.second, randomType, leftX, rightX);
-		enemies.push_back(enemy);
-	}
-	
-	return enemies;
 }
 
 void Enemy::Render(Renderer* _renderer, Camera* _camera)

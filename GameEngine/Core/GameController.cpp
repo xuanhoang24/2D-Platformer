@@ -12,6 +12,8 @@
 #include "../Input/Keyboard.h"
 #include "../Core/Timing.h"
 #include "../Game/ChunkMap.h"
+#include "../Game/Coin.h"
+#include "../Game/Enemy.h"
 
 GameController::GameController()
 {
@@ -181,6 +183,11 @@ void GameController::RunGame()
         
         // Render
         m_chunkMap->Render(m_renderer, m_camera);
+        
+        // Update collisions and render entities
+        UpdateCollisions();
+        RenderEntities();
+        
         m_player->Render(m_renderer, m_camera);
         m_player->RenderCollisionBox(m_renderer, m_camera);
         m_chunkMap->RenderCollisionBoxes(m_renderer, m_camera);
@@ -190,6 +197,76 @@ void GameController::RunGame()
 
         t->CapFPS();
         SDL_RenderPresent(m_renderer->GetRenderer());
+    }
+}
+
+void GameController::UpdateCollisions()
+{
+    float playerX, playerY, playerW, playerH;
+    m_player->GetCollisionBox(playerX, playerY, playerW, playerH);
+    
+    // Check coin collisions
+    vector<Coin*> coins = m_chunkMap->GetAllCoins();
+    for (auto* coin : coins)
+    {
+        if (!coin || !coin->IsActive())
+            continue;
+        
+        float coinX, coinY, coinW, coinH;
+        coin->GetCollisionBox(coinX, coinY, coinW, coinH);
+        
+        if (playerX < coinX + coinW && playerX + playerW > coinX &&
+            playerY < coinY + coinH && playerY + playerH > coinY)
+        {
+            coin->Collect();
+            m_score += coin->GetPointValue();
+        }
+    }
+    
+    // Check enemy collisions
+    vector<Enemy*> enemies = m_chunkMap->GetAllEnemies();
+    for (auto* enemy : enemies)
+    {
+        if (!enemy || !enemy->IsActive())
+            continue;
+        
+        float enemyX, enemyY, enemyW, enemyH;
+        enemy->GetCollisionBox(enemyX, enemyY, enemyW, enemyH);
+        
+        if (playerX < enemyX + enemyW && playerX + playerW > enemyX &&
+            playerY < enemyY + enemyH && playerY + playerH > enemyY)
+        {
+            float playerBottom = playerY + playerH;
+            if (playerBottom <= enemyY + 8.0f && m_player->IsFalling())
+            {
+                enemy->Destroy();
+                m_score += 50;
+                m_player->Bounce();
+            }
+            else
+            {
+                m_player->TakeDamage();
+            }
+        }
+    }
+}
+
+void GameController::RenderEntities()
+{
+    // Render coins
+    vector<Coin*> coins = m_chunkMap->GetAllCoins();
+    for (auto* coin : coins)
+    {
+        if (coin && coin->IsActive())
+            coin->Render(m_renderer, m_camera);
+    }
+    
+    // Render enemies
+    vector<Enemy*> enemies = m_chunkMap->GetAllEnemies();
+    for (auto* enemy : enemies)
+    {
+        if (enemy && enemy->IsActive())
+            enemy->Render(m_renderer, m_camera);
     }
 }
 

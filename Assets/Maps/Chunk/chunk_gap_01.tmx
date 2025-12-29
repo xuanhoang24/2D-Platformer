@@ -25,10 +25,10 @@
   </object>
  </objectgroup>
  <objectgroup id="5" name="Gameplay">
-  <object id="11" name="coin_spawn_zone" x="76.8221" y="49.583" width="69.333" height="32">
+  <object id="11" name="coin_spawn_zone" x="79.1965" y="64.304" width="69.333" height="32">
    <properties>
     <property name="chance" type="float" value="0.8"/>
-    <property name="maxCount" type="int" value="3"/>
+    <property name="maxCount" type="int" value="1"/>
     <property name="minCount" type="int" value="1"/>
     <property name="spawnType" value="coin"/>
    </properties>

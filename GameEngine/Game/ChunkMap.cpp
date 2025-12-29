@@ -1,5 +1,8 @@
 #include "../Game/ChunkMap.h"
 #include "../Graphics/Renderer.h"
+#include "../Game/Coin.h"
+#include "../Game/Enemy.h"
+#include "../Core/Timing.h"
 
 ChunkMap::ChunkMap()
     : m_startChunk(nullptr)
@@ -9,11 +12,18 @@ ChunkMap::ChunkMap()
     , m_chunkWidth(0)
     , m_rng(std::random_device{}())
     , m_dist(1, 100)
+    , m_floatDist(0.0f, 1.0f)
 {
 }
 
 ChunkMap::~ChunkMap()
 {
+    // Cleanup all entities in active chunks
+    for (auto& chunk : m_activeChunks)
+    {
+        CleanupChunkEntities(chunk);
+    }
+    
     delete m_startChunk;
     delete m_randomChunk;
     delete m_gapChunk;
@@ -73,11 +83,31 @@ void ChunkMap::Update(float _cameraX, float _screenWidth)
         // Not remove template chunks, just remove from active list
         if (it->worldOffsetX + m_chunkWidth < despawnThreshold && it->chunkType != 0)
         {
+            CleanupChunkEntities(*it);
             it = m_activeChunks.erase(it);
         }
         else
         {
             ++it;
+        }
+    }
+    
+    // Update all coins and enemies in active chunks
+    for (auto& chunk : m_activeChunks)
+    {
+        for (auto* coin : chunk.coins)
+        {
+            if (coin && coin->IsActive())
+            {
+                coin->Update(Timing::Instance().GetDeltaTime(), _cameraX, (int)_screenWidth, m_chunkWidth);
+            }
+        }
+        for (auto* enemy : chunk.enemies)
+        {
+            if (enemy && enemy->IsActive())
+            {
+                enemy->Update(Timing::Instance().GetDeltaTime(), _cameraX, (int)_screenWidth, m_chunkWidth);
+            }
         }
     }
 }
@@ -94,6 +124,9 @@ void ChunkMap::SpawnNextChunk()
     else
         newChunk.tileMap = m_gapChunk;
     
+    // Spawn entities based on spawn zones
+    SpawnEntitiesForChunk(newChunk);
+    
     m_activeChunks.push_back(newChunk);
     m_nextChunkX += m_chunkWidth;
 }
@@ -103,6 +136,118 @@ int ChunkMap::SelectRandomChunkType()
     int roll = m_dist(m_rng);
     // 70% chance for random chunk (type 1), 30% for gap chunk (type 2)
     return (roll <= 70) ? 1 : 2;
+}
+
+void ChunkMap::SpawnEntitiesForChunk(ChunkInstance& _chunk)
+{
+    if (!_chunk.tileMap) return;
+    
+    // Spawn coins from coin spawn zones (all chunk types)
+    const auto& coinZones = _chunk.tileMap->GetCoinSpawnZones();
+    for (const auto& zone : coinZones)
+    {
+        // Check spawn chance
+        float roll = m_floatDist(m_rng);
+        if (roll > zone.chance)
+            continue;
+        
+        // Determine count to spawn
+        int count = zone.minCount;
+        if (zone.maxCount > zone.minCount)
+        {
+            std::uniform_int_distribution<int> countDist(zone.minCount, zone.maxCount);
+            count = countDist(m_rng);
+        }
+        
+        // Spawn coins within the zone
+        for (int i = 0; i < count; ++i)
+        {
+            // Random position within zone (center X, bottom Y for Initialize)
+            float coinWidth = 16.0f;
+            float coinHeight = 16.0f;
+            std::uniform_real_distribution<float> xDist(zone.x + coinWidth * 0.5f, zone.x + zone.width - coinWidth * 0.5f);
+            std::uniform_real_distribution<float> yDist(zone.y + coinHeight, zone.y + zone.height);
+            
+            float localX = xDist(m_rng);
+            float localY = yDist(m_rng);
+            
+            // Convert to world position (Initialize expects center-bottom position)
+            float worldX = localX + _chunk.worldOffsetX;
+            float worldY = localY;
+            
+            Coin* coin = new Coin();
+            coin->Initialize(worldX, worldY);
+            _chunk.coins.push_back(coin);
+        }
+    }
+    
+    // Spawn enemies from enemy spawn zones
+    const auto& enemyZones = _chunk.tileMap->GetEnemySpawnZones();
+    for (const auto& zone : enemyZones)
+    {
+        // Check spawn chance
+        float roll = m_floatDist(m_rng);
+        if (roll > zone.chance)
+            continue;
+        
+        // Spawn enemies within the zone
+        for (int i = 0; i < zone.maxCount; ++i)
+        {
+            // Random position within zone (center X for Initialize)
+            float enemyWidth = 16.0f;
+            std::uniform_real_distribution<float> xDist(zone.x + enemyWidth * 0.5f, zone.x + zone.width - enemyWidth * 0.5f);
+            
+            float localX = xDist(m_rng);
+            float localY = zone.y + zone.height; // Spawn at bottom of zone
+            
+            // Convert to world position
+            float worldX = localX + _chunk.worldOffsetX;
+            float worldY = localY;
+            
+            // Select enemy type based on weights
+            EnemyType enemyType = EnemyType::Ghost;
+            if (!zone.enemyTypes.empty() && !zone.enemyWeights.empty())
+            {
+                float weightRoll = m_floatDist(m_rng);
+                float cumulative = 0.0f;
+                for (size_t j = 0; j < zone.enemyTypes.size(); ++j)
+                {
+                    cumulative += (j < zone.enemyWeights.size()) ? zone.enemyWeights[j] : 0.5f;
+                    if (weightRoll <= cumulative)
+                    {
+                        if (zone.enemyTypes[j] == "ghost")
+                            enemyType = EnemyType::Ghost;
+                        else if (zone.enemyTypes[j] == "mushroom")
+                            enemyType = EnemyType::Mushroom;
+                        break;
+                    }
+                }
+            }
+            
+            // Calculate movement boundaries (zone bounds in world space)
+            float leftBound = zone.x + _chunk.worldOffsetX;
+            float rightBound = zone.x + zone.width + _chunk.worldOffsetX - enemyWidth;
+            
+            Enemy* enemy = new Enemy();
+            enemy->Initialize(worldX, worldY, enemyType, leftBound, rightBound);
+            _chunk.enemies.push_back(enemy);
+        }
+    }
+}
+
+void ChunkMap::CleanupChunkEntities(ChunkInstance& _chunk)
+{
+    for (auto* coin : _chunk.coins)
+    {
+        delete coin;
+    }
+    _chunk.coins.clear();
+    
+    for (auto* enemy : _chunk.enemies)
+    {
+        delete enemy;
+    }
+    _chunk.enemies.clear();
 }
 
 void ChunkMap::Render(Renderer* _renderer, Camera* _camera)
@@ -392,6 +537,12 @@ bool ChunkMap::CheckCollisionRight(float _x, float _y, float _width, float _heig
 
 void ChunkMap::Reset()
 {
+    // Cleanup all entities in active chunks
+    for (auto& chunk : m_activeChunks)
+    {
+        CleanupChunkEntities(chunk);
+    }
+    
     m_activeChunks.clear();
     
     ChunkInstance startInstance;
@@ -427,4 +578,32 @@ bool ChunkMap::GetPlayerSpawnPoint(float& outX, float& outY) const
     outX = 32.0f;
     outY = 0.0f;
     return false;
+}
+
+vector<Coin*> ChunkMap::GetAllCoins() const
+{
+    vector<Coin*> allCoins;
+    for (const auto& chunk : m_activeChunks)
+    {
+        for (auto* coin : chunk.coins)
+        {
+            if (coin)
+                allCoins.push_back(coin);
+        }
+    }
+    return allCoins;
+}
+
+vector<Enemy*> ChunkMap::GetAllEnemies() const
+{
+    vector<Enemy*> allEnemies;
+    for (const auto& chunk : m_activeChunks)
+    {
+        for (auto* enemy : chunk.enemies)
+        {
+            if (enemy)
+                allEnemies.push_back(enemy);
+        }
+    }
+    return allEnemies;
 }

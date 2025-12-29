@@ -7,6 +7,8 @@
 #include <random>
 
 class Renderer;
+class Coin;
+class Enemy;
 
 // Represents a single chunk instance in the world
 struct ChunkInstance
@@ -14,6 +16,8 @@ struct ChunkInstance
     TileMap* tileMap = nullptr;
     float worldOffsetX = 0.0f;
     int chunkType = 0;          // 0 = start, 1 = random, 2 = gap
+    vector<Coin*> coins;        // Coins spawned in this chunk
+    vector<Enemy*> enemies;     // Enemies spawned in this chunk
 };
 
 class ChunkMap
@@ -42,11 +46,17 @@ public:
     // Getters
     int GetChunkPixelWidth() const;
     int GetMapPixelHeight() const;
+    
+    // Get all active coins and enemies
+    vector<Coin*> GetAllCoins() const;
+    vector<Enemy*> GetAllEnemies() const;
 
 private:
     void SpawnNextChunk();
     int SelectRandomChunkType();  // Returns 1 (random 70%) or 2 (gap 30%)
     void RenderChunkWithOffset(Renderer* _renderer, Camera* _camera, const ChunkInstance& _chunk);
+    void SpawnEntitiesForChunk(ChunkInstance& _chunk);
+    void CleanupChunkEntities(ChunkInstance& _chunk);
     
     // Template chunks (loaded once, reused)
     TileMap* m_startChunk;
@@ -68,6 +78,7 @@ private:
     // Random number generator
     std::mt19937 m_rng;
     std::uniform_int_distribution<int> m_dist;
+    std::uniform_real_distribution<float> m_floatDist;
 };
 
 #endif // CHUNK_MAP_H

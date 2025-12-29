@@ -6,7 +6,6 @@
 #include "../Graphics/AnimatedSpriteLoader.h"
 
 class Camera;
-class GameMap;
 
 enum class EnemyType
 {
@@ -24,10 +23,6 @@ public:
 	void Initialize(float x, float y, EnemyType type, float leftBoundary, float rightBoundary);
 	void Update(float _deltaTime, float _cameraX, int _screenWidth, int _mapPixelWidth);
 	void Render(Renderer* _renderer, Camera* _camera);
-	
-	static vector<Enemy*> SpawnEnemiesFromMap(GameMap* _map);
-	
-	void SetGameMap(GameMap* _map) { m_gameMap = _map; }
 	
 	float GetWorldX() const { return m_worldX; }
 	float GetWorldY() const { return m_worldY; }
@@ -72,9 +67,6 @@ private:
 	// Zone boundaries (base values within single map)
 	float m_baseLeftBoundary;
 	float m_baseRightBoundary;
-	
-	// Map collision (optional)
-	GameMap* m_gameMap;
 };
 
 #endif // ENEMY_H

@@ -1,4 +1,5 @@
 #include "../Graphics/TileMap.h"
+#include <sstream>
 
 TileMap::TileMap()
 {
@@ -27,6 +28,7 @@ bool TileMap::Load(const string& _path)
     LoadLayers();
     LoadCollisionObjects();
     LoadSpawnPoint();
+    LoadSpawnZones();
 
     return true;
 }
@@ -329,6 +331,113 @@ bool TileMap::GetEndPoint(float& outX, float& outY) const
         return true;
     }
     return false;
+}
+
+void TileMap::LoadSpawnZones()
+{
+    m_coinSpawnZones.clear();
+    m_enemySpawnZones.clear();
+
+    const std::vector<std::unique_ptr<tmx::Layer>>& layers = m_map.getLayers();
+
+    for (size_t i = 0; i < layers.size(); ++i)
+    {
+        if (layers[i]->getType() != tmx::Layer::Type::Object)
+            continue;
+
+        // Look for Gameplay layer
+        if (layers[i]->getName() != "Gameplay")
+            continue;
+
+        const tmx::ObjectGroup& objLayer = layers[i]->getLayerAs<tmx::ObjectGroup>();
+        const std::vector<tmx::Object>& objects = objLayer.getObjects();
+
+        for (size_t j = 0; j < objects.size(); ++j)
+        {
+            const tmx::Object& obj = objects[j];
+            const std::string& name = obj.getName();
+
+            // Parse coin spawn zone
+            if (name == "coin_spawn_zone")
+            {
+                CoinSpawnZone zone;
+                zone.x = obj.getPosition().x;
+                zone.y = obj.getPosition().y;
+                zone.width = obj.getAABB().width;
+                zone.height = obj.getAABB().height;
+
+                // Parse properties
+                const auto& props = obj.getProperties();
+                for (const auto& prop : props)
+                {
+                    if (prop.getName() == "chance")
+                        zone.chance = prop.getFloatValue();
+                    else if (prop.getName() == "minCount")
+                        zone.minCount = prop.getIntValue();
+                    else if (prop.getName() == "maxCount")
+                        zone.maxCount = prop.getIntValue();
+                }
+
+                m_coinSpawnZones.push_back(zone);
+            }
+            // Parse enemy spawn zone
+            else if (name == "enemy_spawn_zone")
+            {
+                EnemySpawnZone zone;
+                zone.x = obj.getPosition().x;
+                zone.y = obj.getPosition().y;
+                zone.width = obj.getAABB().width;
+                zone.height = obj.getAABB().height;
+
+                // Parse properties
+                const auto& props = obj.getProperties();
+                for (const auto& prop : props)
+                {
+                    if (prop.getName() == "chance")
+                        zone.chance = prop.getFloatValue();
+                    else if (prop.getName() == "maxCount")
+                        zone.maxCount = prop.getIntValue();
+                    else if (prop.getName() == "enemyTypes")
+                    {
+                        // Parse comma-separated types: "ghost,mushroom"
+                        std::string types = prop.getStringValue();
+                        std::stringstream ss(types);
+                        std::string type;
+                        while (std::getline(ss, type, ','))
+                        {
+                            // Trim whitespace
+                            size_t start = type.find_first_not_of(" ");
+                            size_t end = type.find_last_not_of(" ");
+                            if (start != std::string::npos)
+                                zone.enemyTypes.push_back(type.substr(start, end - start + 1));
+                        }
+                    }
+                    else if (prop.getName() == "enemyWeights")
+                    {
+                        // Parse comma-separated weights: "0.3,0.7"
+                        std::string weights = prop.getStringValue();
+                        std::stringstream ss(weights);
+                        std::string weight;
+                        while (std::getline(ss, weight, ','))
+                        {
+                            zone.enemyWeights.push_back(std::stof(weight));
+                        }
+                    }
+                }
+
+                // Default enemy types if not specified
+                if (zone.enemyTypes.empty())
+                {
+                    zone.enemyTypes.push_back("ghost");
+                    zone.enemyTypes.push_back("mushroom");
+                    zone.enemyWeights.push_back(0.5f);
+                    zone.enemyWeights.push_back(0.5f);
+                }
+
+                m_enemySpawnZones.push_back(zone);
+            }
+        }
+    }
 }
 
 // Check collision from top (player standing on box)

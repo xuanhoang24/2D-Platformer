@@ -24,7 +24,7 @@
   </object>
  </objectgroup>
  <objectgroup id="5" name="Gameplay">
-  <object id="10" name="enemy_spawn_zone" x="64.7123" y="79.962" width="107" height="16">
+  <object id="10" name="enemy_spawn_zone" x="16.2754" y="79.962" width="208.148" height="16">
    <properties>
     <property name="chance" type="float" value="0.7"/>
     <property name="enemyTypes" value="ghost,mushroom"/>

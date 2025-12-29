@@ -30,6 +30,9 @@ public:
 	void GetCollisionBox(float& outX, float& outY, float& outWidth, float& outHeight) const;
 
 	bool IsMovingDown() const { return m_veloY > 0; }
+	bool IsFalling() const { return m_veloY > 0 && !m_isGrounded; }
+	void Bounce();
+	void TakeDamage();
 	void Die();
 	bool IsDead() const { return m_isDead; }
 	bool IsFullyDead() const { return m_isFullyDead; }

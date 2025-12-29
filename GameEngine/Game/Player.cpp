@@ -328,6 +328,20 @@ void Player::Die()
 	}
 }
 
+void Player::Bounce()
+{
+	// Small bounce when stomping an enemy
+	m_veloY = m_jumpForce * 0.5f;
+	m_isJumping = true;
+	m_isGrounded = false;
+}
+
+void Player::TakeDamage()
+{
+	// For now, just die when hit by enemy
+	Die();
+}
+
 
 void Player::Reset()
 {
