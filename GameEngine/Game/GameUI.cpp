@@ -1,12 +1,17 @@
 #include "../Game/GameUI.h"
 #include "../Graphics/Renderer.h"
 #include "../Graphics/TTFont.h"
+#include "../Graphics/Texture.h"
+#include "../Graphics/AnimatedSpriteLoader.h"
+#include "../Game/Player.h"
+#include "../Core/Timing.h"
 #include <sstream>
 
 GameUI::GameUI()
 {
     m_titleFont = nullptr;
     m_font = nullptr;
+    m_heartAnimLoader = nullptr;
     m_state = UIState::StartScreen;
     m_startButtonRect = { 0, 0, 0, 0 };
     m_exitButtonRect = { 0, 0, 0, 0 };
@@ -31,6 +36,8 @@ GameUI::~GameUI()
     m_titleFont = nullptr;
     delete m_font;
     m_font = nullptr;
+    delete m_heartAnimLoader;
+    m_heartAnimLoader = nullptr;
 }
 
 void GameUI::Initialize()
@@ -40,6 +47,10 @@ void GameUI::Initialize()
     
     m_font = new TTFont();
     m_font->Initialize(12);
+    
+    m_heartAnimLoader = new AnimatedSpriteLoader();
+    m_heartAnimLoader->LoadAnimation("heart_full", "../Assets/Textures/Player/heart2-shine.png", 1, 6, 16, 16, 6, 2.0f);
+    m_heartAnimLoader->LoadAnimation("heart_empty", "../Assets/Textures/Player/heart2-empty.png", 1, 1, 16, 16, 6, 0.0f);
 }
 
 void GameUI::SetState(UIState _state)
@@ -93,7 +104,7 @@ void GameUI::RenderButton(Renderer* _renderer, SDL_Rect& _rect, const char* _tex
     m_font->Write(_renderer->GetRenderer(), _text, white, textPos);
 }
 
-void GameUI::Render(Renderer* _renderer, int _score)
+void GameUI::Render(Renderer* _renderer, int _score, Player* _player)
 {
     switch (m_state)
     {
@@ -101,14 +112,14 @@ void GameUI::Render(Renderer* _renderer, int _score)
             RenderStartScreen(_renderer);
             break;
         case UIState::Playing:
-            RenderPlayingUI(_renderer, _score);
+            RenderPlayingUI(_renderer, _score, _player);
             break;
         case UIState::Paused:
-            RenderPlayingUI(_renderer, _score);
+            RenderPlayingUI(_renderer, _score, _player);
             RenderPauseMenu(_renderer);
             break;
         case UIState::GameOver:
-            RenderPlayingUI(_renderer, _score);
+            RenderPlayingUI(_renderer, _score, _player);
             RenderGameOver(_renderer, _score);
             break;
     }
@@ -146,7 +157,7 @@ void GameUI::RenderStartScreen(Renderer* _renderer)
     RenderButton(_renderer, m_exitButtonRect, "EXIT", m_exitHovered, true);
 }
 
-void GameUI::RenderPlayingUI(Renderer* _renderer, int _score)
+void GameUI::RenderPlayingUI(Renderer* _renderer, int _score, Player* _player)
 {
     // Render score
     std::stringstream ss;
@@ -154,6 +165,41 @@ void GameUI::RenderPlayingUI(Renderer* _renderer, int _score)
     SDL_Color black = { 0, 0, 0, 255 };
     SDL_Point scorePos = { 10, 10 };
     m_font->Write(_renderer->GetRenderer(), ss.str().c_str(), black, scorePos);
+    
+    // Render hearts
+    if (_player)
+    {
+        RenderHearts(_renderer, _player->GetHealth(), _player->GetMaxHealth());
+    }
+}
+
+void GameUI::RenderHearts(Renderer* _renderer, int _health, int _maxHealth)
+{
+    int heartSize = 16;
+    int heartSpacing = 2;
+    int startX = 10;
+    int startY = 26;
+    
+    float deltaTime = Timing::Instance().GetDeltaTime();
+    
+    for (int i = 0; i < _maxHealth; i++)
+    {
+        string animName = (i < _health) ? "heart_full" : "heart_empty";
+        
+        Rect srcRect = m_heartAnimLoader->UpdateAnimation(animName, deltaTime);
+        Texture* heartTex = m_heartAnimLoader->GetTexture(animName);
+        
+        if (heartTex)
+        {
+            Rect destRect(
+                startX + i * (heartSize + heartSpacing),
+                startY,
+                startX + i * (heartSize + heartSpacing) + heartSize,
+                startY + heartSize
+            );
+            _renderer->RenderTexture(heartTex, srcRect, destRect);
+        }
+    }
 }
 
 void GameUI::RenderPauseMenu(Renderer* _renderer)

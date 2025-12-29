@@ -37,6 +37,13 @@ Player::Player()
 	m_isFullyDead = false;
 	m_deathTimer = 0.0f;
 	m_deathDuration = 1.0f; // Show hurt animation for 1 second
+	
+	// Health system
+	m_maxHealth = 3;
+	m_health = m_maxHealth;
+	m_invincibleTimer = 0.0f;
+	m_invincibleDuration = 1.5f; // 1.5 seconds of invincibility after taking damage
+	m_isInvincible = false;
 }
 
 Player::~Player()
@@ -72,6 +79,17 @@ void Player::Update(float _deltaTime)
 			m_isFullyDead = true;
 		}
 		return;
+	}
+	
+	// Update invincibility timer
+	if (m_isInvincible)
+	{
+		m_invincibleTimer -= _deltaTime;
+		if (m_invincibleTimer <= 0.0f)
+		{
+			m_isInvincible = false;
+			m_invincibleTimer = 0.0f;
+		}
 	}
 
 	// Clamp deltaTime to prevent huge jumps during loading
@@ -199,6 +217,15 @@ void Player::Render(Renderer* _renderer, Camera* _camera)
 {
 	if (m_isFullyDead)
 		return;
+	
+	// Flicker effect when invincible (skip rendering every other frame)
+	if (m_isInvincible)
+	{
+		static int flickerCounter = 0;
+		flickerCounter++;
+		if (flickerCounter % 6 < 3) // Flicker every 3 frames
+			return;
+	}
 
 	float width = 16 * scale;
 	float height = 16 * scale;
@@ -338,8 +365,23 @@ void Player::Bounce()
 
 void Player::TakeDamage()
 {
-	// For now, just die when hit by enemy
-	Die();
+	// Skip if invincible or already dead
+	if (m_isInvincible || m_isDead)
+		return;
+	
+	m_health--;
+	
+	if (m_health <= 0)
+	{
+		m_health = 0;
+		Die();
+	}
+	else
+	{
+		// Start invincibility period
+		m_isInvincible = true;
+		m_invincibleTimer = m_invincibleDuration;
+	}
 }
 
 
@@ -354,4 +396,9 @@ void Player::Reset()
 	m_isJumping = false;
 	m_jumpPressed = false;
 	m_facingRight = true;
+	
+	// Reset health
+	m_health = m_maxHealth;
+	m_isInvincible = false;
+	m_invincibleTimer = 0.0f;
 }

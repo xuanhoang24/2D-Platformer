@@ -156,7 +156,7 @@ void GameController::RunGame()
         // Handle Start Screen state
         if (m_gameUI->GetState() == UIState::StartScreen)
         {
-            m_gameUI->Render(m_renderer, m_score);
+            m_gameUI->Render(m_renderer, m_score, m_player);
             t->CapFPS();
             SDL_RenderPresent(m_renderer->GetRenderer());
             continue;
@@ -168,7 +168,7 @@ void GameController::RunGame()
             m_chunkMap->Render(m_renderer, m_camera);
             RenderEntities();
             m_player->Render(m_renderer, m_camera);
-            m_gameUI->Render(m_renderer, m_score);
+            m_gameUI->Render(m_renderer, m_score, m_player);
             t->CapFPS();
             SDL_RenderPresent(m_renderer->GetRenderer());
             continue;
@@ -210,7 +210,7 @@ void GameController::RunGame()
         m_chunkMap->RenderCollisionBoxes(m_renderer, m_camera);
         
         // Render UI
-        m_gameUI->Render(m_renderer, m_score);
+        m_gameUI->Render(m_renderer, m_score, m_player);
 
         t->CapFPS();
         SDL_RenderPresent(m_renderer->GetRenderer());

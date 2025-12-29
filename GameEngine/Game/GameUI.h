@@ -5,6 +5,9 @@
 
 class Renderer;
 class TTFont;
+class Texture;
+class Player;
+class AnimatedSpriteLoader;
 
 enum class UIState
 {
@@ -21,7 +24,7 @@ public:
     virtual ~GameUI();
 
     void Initialize();
-    void Render(Renderer* _renderer, int _score);
+    void Render(Renderer* _renderer, int _score, Player* _player);
     void HandleInput(SDL_Event& _event, Renderer* _renderer);
     
     UIState GetState() const { return m_state; }
@@ -37,13 +40,17 @@ public:
 
 private:
     void RenderStartScreen(Renderer* _renderer);
-    void RenderPlayingUI(Renderer* _renderer, int _score);
+    void RenderPlayingUI(Renderer* _renderer, int _score, Player* _player);
     void RenderPauseMenu(Renderer* _renderer);
     void RenderGameOver(Renderer* _renderer, int _score);
     void RenderButton(Renderer* _renderer, SDL_Rect& _rect, const char* _text, bool _hovered, bool _isExit);
+    void RenderHearts(Renderer* _renderer, int _health, int _maxHealth);
     
     TTFont* m_titleFont;
     TTFont* m_font;
+    
+    // Heart animation
+    AnimatedSpriteLoader* m_heartAnimLoader;
     
     UIState m_state;
     

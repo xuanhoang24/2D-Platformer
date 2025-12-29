@@ -37,6 +37,10 @@ public:
 	bool IsDead() const { return m_isDead; }
 	bool IsFullyDead() const { return m_isFullyDead; }
 	void Reset();
+	
+	// Health system
+	int GetHealth() const { return m_health; }
+	int GetMaxHealth() const { return m_maxHealth; }
 
 private:
 	bool m_isDead;
@@ -71,7 +75,15 @@ private:
 	float m_jumpHoldTimer;
 	float m_coyoteTime;
 	float m_coyoteTimer;
+	
+	// Health
+	int m_health;
+	int m_maxHealth;
+	float m_invincibleTimer;
+	float m_invincibleDuration;
+	bool m_isInvincible;
 };
+
 
 #endif // PLAYER_H
 
