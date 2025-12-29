@@ -165,6 +165,7 @@ void GameController::RunGame()
         // Handle Paused state - render but don't update
         if (m_gameUI->GetState() == UIState::Paused)
         {
+            m_chunkMap->RenderBackgrounds(m_renderer, m_camera);
             m_chunkMap->Render(m_renderer, m_camera);
             RenderEntities();
             m_player->Render(m_renderer, m_camera);
@@ -199,6 +200,7 @@ void GameController::RunGame()
         }
         
         // Render
+        m_chunkMap->RenderBackgrounds(m_renderer, m_camera);
         m_chunkMap->Render(m_renderer, m_camera);
         
         // Update collisions and render entities

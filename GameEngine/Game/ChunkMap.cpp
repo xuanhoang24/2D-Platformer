@@ -22,6 +22,14 @@ ChunkMap::~ChunkMap()
         CleanupChunkEntities(chunk);
     }
     
+    // Cleanup background textures
+    for (auto& bg : m_backgroundLayers)
+    {
+        if (bg.texture)
+            SDL_DestroyTexture(bg.texture);
+    }
+    m_backgroundLayers.clear();
+    
     delete m_startChunk;
     
     for (auto* chunk : m_randomChunks)
@@ -87,8 +95,74 @@ void ChunkMap::AddFloatingChunk(const string& _path)
         delete chunk;
 }
 
+void ChunkMap::AddBackgroundLayer(const string& _path, float _parallaxFactor)
+{
+    SDL_Renderer* sdl = Renderer::Instance().GetRenderer();
+    SDL_Texture* texture = IMG_LoadTexture(sdl, _path.c_str());
+    
+    if (texture)
+    {
+        BackgroundLayer layer;
+        layer.texture = texture;
+        layer.parallaxFactor = _parallaxFactor;
+        SDL_QueryTexture(texture, nullptr, nullptr, &layer.width, &layer.height);
+        m_backgroundLayers.push_back(layer);
+    }
+}
+
+void ChunkMap::RenderBackgrounds(Renderer* _renderer, Camera* _camera)
+{
+    SDL_Renderer* sdl = _renderer->GetRenderer();
+    float cameraX = _camera ? _camera->GetX() : 0.0f;
+    
+    Point logicalSize = _renderer->GetLogicalSize();
+    int screenWidth = logicalSize.X;
+    int screenHeight = logicalSize.Y;
+    
+    // Render layers back to front (index 0 is furthest back)
+    for (const auto& layer : m_backgroundLayers)
+    {
+        if (!layer.texture || layer.width == 0) continue;
+        
+        // Scale height to fit screen, maintain aspect ratio
+        float scale = (float)screenHeight / (float)layer.height;
+        int scaledWidth = (int)(layer.width * scale);
+        int scaledHeight = screenHeight;
+        
+        if (scaledWidth == 0) continue;
+        
+        // Calculate parallax offset using scaled width for proper looping
+        float parallaxOffset = cameraX * layer.parallaxFactor;
+        
+        // Use fmod to get offset within one image width, always negative or zero
+        float offset = fmod(parallaxOffset, (float)scaledWidth);
+        float startX = -offset;
+        
+        // Ensure start from left of screen
+        while (startX > 0) startX -= scaledWidth;
+        
+        // Render enough copies to cover the screen plus one extra for seamless wrap
+        for (float x = startX; x < screenWidth + scaledWidth; x += scaledWidth)
+        {
+            SDL_Rect dst;
+            dst.x = (int)x;
+            dst.y = 0;
+            dst.w = scaledWidth;
+            dst.h = scaledHeight;
+            
+            SDL_RenderCopy(sdl, layer.texture, nullptr, &dst);
+        }
+    }
+}
+
 void ChunkMap::LoadDefaultChunks()
 {
+    // Load background layers (back to front)
+    // Background_2 - furthest back, slower parallax
+    AddBackgroundLayer("../Assets/Maps/Images/Tilemap/Background_2.png", 0.3f);
+    // Background_1 - in front, faster parallax
+    AddBackgroundLayer("../Assets/Maps/Images/Tilemap/Background_1.png", 0.6f);
+    
     // Load start chunk
     Load("../Assets/Maps/Chunk/chunk_flat_start.tmx");
     

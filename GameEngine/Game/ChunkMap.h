@@ -10,6 +10,15 @@ class Renderer;
 class Coin;
 class Enemy;
 
+// Background layer with parallax scrolling
+struct BackgroundLayer
+{
+    SDL_Texture* texture = nullptr;
+    int width = 0;
+    int height = 0;
+    float parallaxFactor = 1.0f;  // 0 = static, 1 = moves with camera
+};
+
 // Represents a single chunk instance in the world
 struct ChunkInstance
 {
@@ -31,6 +40,10 @@ public:
     void AddRandomChunk(const string& _path);
     void AddGapChunk(const string& _path);
     void AddFloatingChunk(const string& _path);
+    
+    // Background layers
+    void AddBackgroundLayer(const string& _path, float _parallaxFactor);
+    void RenderBackgrounds(Renderer* _renderer, Camera* _camera);
     
     void Update(float _cameraX, float _screenWidth);
     void Render(Renderer* _renderer, Camera* _camera);
@@ -73,6 +86,9 @@ private:
     // Active chunk instances
     vector<ChunkInstance> m_activeChunks;
     
+    // Background layers (rendered back to front)
+    vector<BackgroundLayer> m_backgroundLayers;
+
     // World state
     float m_nextChunkX;         // X position where next chunk should spawn
     int m_chunkWidth;           // Width of each chunk in pixels
