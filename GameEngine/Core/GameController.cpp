@@ -65,6 +65,11 @@ void GameController::Initialize()
     
     // Connect player to chunk map for collision
     m_player->SetChunkMap(m_chunkMap);
+    
+    // Set initial player spawn position from map
+    float spawnX, spawnY;
+    m_chunkMap->GetPlayerSpawnPoint(spawnX, spawnY);
+    m_player->SetSpawnPosition(spawnX, spawnY);
    
     
     // Initialize UI

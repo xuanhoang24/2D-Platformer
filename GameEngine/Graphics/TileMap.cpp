@@ -268,6 +268,7 @@ void TileMap::LoadSpawnPoint()
 {
     m_hasStartPoint = false;
     m_hasEndPoint = false;
+    bool hasPlayerSpawn = false;
 
     const std::vector<std::unique_ptr<tmx::Layer>>& layers = m_map.getLayers();
     
@@ -284,14 +285,15 @@ void TileMap::LoadSpawnPoint()
             const tmx::Object& obj = objects[j];
             
             // Look for PlayerSpawn object
-            if ((obj.getName() == "PlayerSpawn" || layers[i]->getName() == "PlayerSpawn") && !m_hasStartPoint)
+            if (obj.getName() == "PlayerSpawn" || layers[i]->getName() == "PlayerSpawn")
             {
                 m_startX = obj.getPosition().x;
                 m_startY = obj.getPosition().y;
                 m_hasStartPoint = true;
+                hasPlayerSpawn = true;
             }
-            // Also check for Start point
-            else if (obj.getName() == "Start" && !m_hasStartPoint)
+            // Fallback to Start point only if no PlayerSpawn found
+            else if (obj.getName() == "Start" && !hasPlayerSpawn)
             {
                 m_startX = obj.getPosition().x;
                 m_startY = obj.getPosition().y;
