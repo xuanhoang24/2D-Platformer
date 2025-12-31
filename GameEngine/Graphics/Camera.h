@@ -33,7 +33,6 @@ private:
 	float m_x;
 	float m_y;
 	float m_maxX;
-	Renderer* m_renderer;
 };
 
 #endif // CAMERA_H

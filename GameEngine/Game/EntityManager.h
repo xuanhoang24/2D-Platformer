@@ -64,6 +64,8 @@ private:
     InputSystem m_input;
     PhysicsSystem m_physics;
     JumpSystem m_jump;
+    DashSystem m_dash;
+    PunchSystem m_punch;
     MovementSystem m_movement;
     CollisionSystem m_collision;
     PatrolSystem m_patrol;

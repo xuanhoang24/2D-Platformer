@@ -113,6 +113,29 @@ struct PlayerTag : Component {};
 // Tag component for entities that receive input 
 struct InputComponent : Component {};
 
+// Dash ability
+struct DashComponent : Component
+{
+    bool dashPressed = false;
+    bool isDashing = false;
+    float dashSpeed = 500;          // Speed during dash
+    float dashDuration = 0.15f;     // How long dash lasts
+    float dashTimer = 0;
+    float dashCooldown = 0.5f;      // Time between dashes
+    float cooldownTimer = 0;
+};
+
+// Punch attack ability
+struct PunchComponent : Component
+{
+    bool punchPressed = false;
+    bool isPunching = false;
+    float punchDuration = 0.3f;     // How long punch animation lasts
+    float punchTimer = 0;
+    float punchRange = 25;          // Hit enemies within 25 pixels
+    bool hasHit = false;            // Prevent multiple hits per punch
+};
+
 // Infinite scroll repositioning
 struct ScrollableComponent : Component
 {

@@ -13,10 +13,44 @@ void InputSystem::Update(std::vector<Entity*>& entities, float deltaTime)
         auto* movement = entity->GetComponent<MovementComponent>();
         auto* sprite = entity->GetComponent<SpriteComponent>();
         auto* jump = entity->GetComponent<JumpComponent>();
+        auto* dash = entity->GetComponent<DashComponent>();
+        auto* punch = entity->GetComponent<PunchComponent>();
         if (!movement) continue;
 
         bool shift = keys[SDL_SCANCODE_LSHIFT] || keys[SDL_SCANCODE_RSHIFT];
-        float speed = shift ? movement->runSpeed : movement->walkSpeed;
+        
+        // Dash - shift press
+        if (dash)
+        {
+            static bool prevShift = false;
+            bool shiftJustPressed = shift && !prevShift;
+            prevShift = shift;
+            
+            if (shiftJustPressed && !dash->isDashing && dash->cooldownTimer <= 0)
+            {
+                dash->dashPressed = true;
+            }
+        }
+
+        // Punch input - Left mouse click
+        if (punch && !punch->isPunching)
+        {
+            static bool prevClick = false;
+            Uint32 mouseState = SDL_GetMouseState(NULL, NULL);
+            bool leftClick = (mouseState & SDL_BUTTON(SDL_BUTTON_LEFT)) != 0;
+            bool clickJustPressed = leftClick && !prevClick;
+            prevClick = leftClick;
+            
+            if (clickJustPressed)
+            {
+                punch->punchPressed = true;
+            }
+        }
+
+        // Don't allow normal movement control during dash or punch
+        if ((dash && dash->isDashing) || (punch && punch->isPunching)) continue;
+
+        float speed = movement->walkSpeed;
 
         if (keys[SDL_SCANCODE_A]) { movement->velocityX = -speed; if (sprite) sprite->facingRight = false; }
         else if (keys[SDL_SCANCODE_D]) { movement->velocityX = speed; if (sprite) sprite->facingRight = true; }
@@ -66,6 +100,126 @@ void JumpSystem::Update(std::vector<Entity*>& entities, float deltaTime)
             }
         }
     }
+}
+
+void DashSystem::Update(std::vector<Entity*>& entities, float deltaTime)
+{
+    for (auto* entity : entities)
+    {
+        if (!entity || !entity->IsActive()) continue;
+        auto* movement = entity->GetComponent<MovementComponent>();
+        auto* sprite = entity->GetComponent<SpriteComponent>();
+        auto* dash = entity->GetComponent<DashComponent>();
+        if (!movement || !dash) continue;
+
+        // Update cooldown timer
+        if (dash->cooldownTimer > 0)
+            dash->cooldownTimer -= deltaTime;
+
+        // Start dash
+        if (dash->dashPressed && !dash->isDashing && dash->cooldownTimer <= 0)
+        {
+            dash->isDashing = true;
+            dash->dashTimer = dash->dashDuration;
+            dash->dashPressed = false;
+            
+            // Dash in facing direction
+            float direction = (sprite && !sprite->facingRight) ? -1.0f : 1.0f;
+            movement->velocityX = dash->dashSpeed * direction;
+            movement->velocityY = 0;  // Cancel vertical movement during dash
+        }
+
+        // Update dash
+        if (dash->isDashing)
+        {
+            dash->dashTimer -= deltaTime;
+            if (dash->dashTimer <= 0)
+            {
+                dash->isDashing = false;
+                dash->cooldownTimer = dash->dashCooldown;
+                movement->velocityX = 0;
+            }
+        }
+        
+        dash->dashPressed = false;
+    }
+}
+
+void PunchSystem::Update(std::vector<Entity*>& entities, float deltaTime)
+{
+    // Find player
+    Entity* player = nullptr;
+    for (auto* entity : entities)
+        if (entity && entity->IsActive() && entity->HasComponent<PlayerTag>()) { player = entity; break; }
+    if (!player) return;
+
+    auto* punch = player->GetComponent<PunchComponent>();
+    auto* transform = player->GetComponent<TransformComponent>();
+    auto* sprite = player->GetComponent<SpriteComponent>();
+    auto* movement = player->GetComponent<MovementComponent>();
+    if (!punch || !transform) return;
+
+    // Start punch
+    if (punch->punchPressed && !punch->isPunching)
+    {
+        punch->isPunching = true;
+        punch->punchTimer = punch->punchDuration;
+        punch->hasHit = false;
+        punch->punchPressed = false;
+        
+        // Stop movement during punch
+        if (movement) movement->velocityX = 0;
+    }
+
+    // Update punch
+    if (punch->isPunching)
+    {
+        punch->punchTimer -= deltaTime;
+        
+        // Check for enemy hits (only once per punch)
+        if (!punch->hasHit)
+        {
+            float playerCenterX = transform->worldX + transform->width / 2;
+            float playerCenterY = transform->worldY + transform->height / 2;
+            float direction = (sprite && !sprite->facingRight) ? -1.0f : 1.0f;
+            
+            for (auto* entity : entities)
+            {
+                if (!entity || !entity->IsActive() || entity == player) continue;
+                auto* enemy = entity->GetComponent<EnemyComponent>();
+                if (!enemy || enemy->destroyed) continue;
+                
+                auto* enemyTransform = entity->GetComponent<TransformComponent>();
+                if (!enemyTransform) continue;
+                
+                float enemyCenterX = enemyTransform->worldX + enemyTransform->width / 2;
+                float enemyCenterY = enemyTransform->worldY + enemyTransform->height / 2;
+                
+                // Check if enemy is in facing direction
+                float dx = enemyCenterX - playerCenterX;
+                if ((direction > 0 && dx < 0) || (direction < 0 && dx > 0)) continue;
+                
+                float dy = enemyCenterY - playerCenterY;
+                float dist = sqrt(dx * dx + dy * dy);
+                
+                // Only hit if within 5 pixels
+                if (dist <= punch->punchRange)
+                {
+                    enemy->destroyed = true;
+                    entity->SetActive(false);
+                    punch->hasHit = true;
+                    break;
+                }
+            }
+        }
+        
+        if (punch->punchTimer <= 0)
+        {
+            punch->isPunching = false;
+        }
+    }
+    
+    punch->punchPressed = false;
 }
 
 void MovementSystem::Update(std::vector<Entity*>& entities, float deltaTime)
@@ -339,6 +493,7 @@ void AnimationSystem::Update(std::vector<Entity*>& entities, float deltaTime)
         auto* movement = entity->GetComponent<MovementComponent>();
         auto* physics = entity->GetComponent<PhysicsComponent>();
         auto* health = entity->GetComponent<HealthComponent>();
+        auto* punch = entity->GetComponent<PunchComponent>();
         if (!sprite) continue;
 
         if (movement)
@@ -351,6 +506,7 @@ void AnimationSystem::Update(std::vector<Entity*>& entities, float deltaTime)
         {
             sprite->flickering = health->isInvincible;
             if (health->isDead) sprite->currentAnimation = "hurt";
+            else if (punch && punch->isPunching) sprite->currentAnimation = "punch";
             else if (physics && !physics->isGrounded) sprite->currentAnimation = "jumpandfall";
             else if (movement && movement->velocityX != 0) sprite->currentAnimation = "run";
             else sprite->currentAnimation = "idle";

@@ -7,7 +7,6 @@ Camera::Camera()
 	: m_x(0.0f)
 	, m_y(0.0f)
 	, m_maxX(0.0f)
-	, m_renderer(nullptr)
 {
 }
 
@@ -25,8 +24,6 @@ void Camera::FollowEntity(Entity* _entity, Renderer* _renderer)
 
 	auto* transform = _entity->GetComponent<TransformComponent>();
 	if (!transform) return;
-
-	m_renderer = _renderer;
 
 	float entityWorldX = transform->worldX;
 	float entityWidth = transform->width * transform->scale;

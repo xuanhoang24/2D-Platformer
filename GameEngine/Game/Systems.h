@@ -45,6 +45,20 @@ public:
     void Update(std::vector<Entity*>& entities, float deltaTime) override;
 };
 
+// Handles dash ability triggered by shift key
+class DashSystem : public System
+{
+public:
+    void Update(std::vector<Entity*>& entities, float deltaTime) override;
+};
+
+// Handles punch attack - kills enemies in front of player
+class PunchSystem : public System
+{
+public:
+    void Update(std::vector<Entity*>& entities, float deltaTime) override;
+};
+
 // Applies velocity to position
 class MovementSystem : public System
 {

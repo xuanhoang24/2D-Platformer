@@ -17,10 +17,13 @@ Entity* EntityFactory::CreatePlayer(float x, float y)
     sprite->animLoader->LoadAnimation("run", "../Assets/Textures/Player/run.png", 1, 4, 16, 16, 4, 12.0f);
     sprite->animLoader->LoadAnimation("jumpandfall", "../Assets/Textures/Player/jumpandfall.png", 1, 2, 16, 16, 2, 8.0f);
     sprite->animLoader->LoadAnimation("hurt", "../Assets/Textures/Player/hurt.png", 1, 2, 16, 16, 2, 2.0f);
+    sprite->animLoader->LoadAnimation("punch", "../Assets/Textures/Player/punch1.png", 1, 4, 16, 16, 4, 12.0f);
 
     entity->AddComponent<MovementComponent>();
     entity->AddComponent<PhysicsComponent>();
     entity->AddComponent<JumpComponent>();
+    entity->AddComponent<DashComponent>();
+    entity->AddComponent<PunchComponent>();
     entity->AddComponent<CollisionComponent>()->type = ColliderType::Player;
     entity->AddComponent<HealthComponent>();
     entity->AddComponent<InputComponent>();
@@ -166,6 +169,8 @@ void EntityManager::Update(float deltaTime)
     m_input.Update(m_entities, deltaTime);
     m_physics.Update(m_entities, deltaTime);
     m_jump.Update(m_entities, deltaTime);
+    m_dash.Update(m_entities, deltaTime);
+    m_punch.Update(m_entities, deltaTime);
     m_movement.Update(m_entities, deltaTime);
     m_collision.Update(m_entities, deltaTime);
     m_patrol.Update(m_entities, deltaTime);
@@ -239,6 +244,22 @@ void EntityManager::Reset()
             jump->jumpPressed = false;
             jump->jumpHoldTimer = 0;
             jump->coyoteTimer = 0;
+        }
+        auto* dash = entity->GetComponent<DashComponent>();
+        if (dash)
+        {
+            dash->isDashing = false;
+            dash->dashPressed = false;
+            dash->dashTimer = 0;
+            dash->cooldownTimer = 0;
+        }
+        auto* punch = entity->GetComponent<PunchComponent>();
+        if (punch)
+        {
+            punch->isPunching = false;
+            punch->punchPressed = false;
+            punch->punchTimer = 0;
+            punch->hasHit = false;
         }
         if (health)
         {
