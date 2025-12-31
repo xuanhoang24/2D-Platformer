@@ -3,7 +3,6 @@
 #include "../Graphics/TTFont.h"
 #include "../Graphics/Texture.h"
 #include "../Graphics/AnimatedSpriteLoader.h"
-#include "../Game/Player.h"
 #include "../Core/Timing.h"
 #include <sstream>
 
@@ -69,7 +68,7 @@ void GameUI::ConvertToLogicalCoords(Renderer* _renderer, int& mouseX, int& mouse
     mouseY = (int)(mouseY * (float)logicalSize.Y / (float)windowSize.Y);
 }
 
-void GameUI::Render(Renderer* _renderer, int _score, Player* _player)
+void GameUI::Render(Renderer* _renderer, int _score, int _health, int _maxHealth)
 {
     switch (m_state)
     {
@@ -77,14 +76,14 @@ void GameUI::Render(Renderer* _renderer, int _score, Player* _player)
             RenderStartScreen(_renderer);
             break;
         case UIState::Playing:
-            RenderPlayingUI(_renderer, _score, _player);
+            RenderPlayingUI(_renderer, _score, _health, _maxHealth);
             break;
         case UIState::Paused:
-            RenderPlayingUI(_renderer, _score, _player);
+            RenderPlayingUI(_renderer, _score, _health, _maxHealth);
             RenderPauseMenu(_renderer);
             break;
         case UIState::GameOver:
-            RenderPlayingUI(_renderer, _score, _player);
+            RenderPlayingUI(_renderer, _score, _health, _maxHealth);
             RenderGameOver(_renderer, _score);
             break;
     }
@@ -121,7 +120,7 @@ void GameUI::RenderStartScreen(Renderer* _renderer)
     m_exitButton.Render(_renderer, m_font, "EXIT", true);
 }
 
-void GameUI::RenderPlayingUI(Renderer* _renderer, int _score, Player* _player)
+void GameUI::RenderPlayingUI(Renderer* _renderer, int _score, int _health, int _maxHealth)
 {
     std::stringstream ss;
     ss << "Score: " << _score;
@@ -136,10 +135,7 @@ void GameUI::RenderPlayingUI(Renderer* _renderer, int _score, Player* _player)
     SDL_Point fpsPos = { (int)logicalSize.X - 45, 10 };
     m_font->Write(_renderer->GetRenderer(), 8, fpsStream.str().c_str(), black, fpsPos);
     
-    if (_player)
-    {
-        RenderHearts(_renderer, _player->GetHealth(), _player->GetMaxHealth());
-    }
+    RenderHearts(_renderer, _health, _maxHealth);
 }
 
 void GameUI::RenderHearts(Renderer* _renderer, int _health, int _maxHealth)

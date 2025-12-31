@@ -238,7 +238,13 @@
   </ItemGroup>
   <!-- Game Files -->
   <ItemGroup>
-    <ClCompile Include="Game\Player.cpp">
+    <ClCompile Include="Game\Entity.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\Systems.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game\EntityManager.cpp">
       <Filter>Game</Filter>
     </ClCompile>
     <ClCompile Include="Game\ChunkMap.cpp">
@@ -256,18 +262,18 @@
     <ClCompile Include="Game\Unit.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="Game\Coin.cpp">
-      <Filter>Game</Filter>
-    </ClCompile>
-    <ClCompile Include="Game\Enemy.cpp">
-      <Filter>Game</Filter>
-    </ClCompile>
-    <ClCompile Include="Game\WorldEntity.cpp">
-      <Filter>Game</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Game\Player.h">
+    <ClInclude Include="Game\Entity.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Components.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\Systems.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\EntityManager.h">
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="Game\ChunkMap.h">
@@ -283,15 +289,6 @@
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="Game\Unit.h">
-      <Filter>Game</Filter>
-    </ClInclude>
-    <ClInclude Include="Game\Coin.h">
-      <Filter>Game</Filter>
-    </ClInclude>
-    <ClInclude Include="Game\Enemy.h">
-      <Filter>Game</Filter>
-    </ClInclude>
-    <ClInclude Include="Game\WorldEntity.h">
       <Filter>Game</Filter>
     </ClInclude>
   </ItemGroup>

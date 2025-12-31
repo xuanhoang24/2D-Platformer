@@ -1,11 +1,11 @@
 #include "../Game/ChunkMap.h"
 #include "../Graphics/Renderer.h"
-#include "../Game/Coin.h"
-#include "../Game/Enemy.h"
+#include "../Game/EntityManager.h"
 #include "../Core/Timing.h"
 
 ChunkMap::ChunkMap()
-    : m_startChunk(nullptr)
+    : m_entityManager(nullptr)
+    , m_startChunk(nullptr)
     , m_nextChunkX(0.0f)
     , m_chunkWidth(0)
     , m_rng(std::random_device{}())
@@ -16,34 +16,21 @@ ChunkMap::ChunkMap()
 
 ChunkMap::~ChunkMap()
 {
-    // Cleanup all entities in active chunks
     for (auto& chunk : m_activeChunks)
-    {
         CleanupChunkEntities(chunk);
-    }
     
-    // Cleanup background textures
     for (auto& bg : m_backgroundLayers)
-    {
-        if (bg.texture)
-            SDL_DestroyTexture(bg.texture);
-    }
+        if (bg.texture) SDL_DestroyTexture(bg.texture);
     m_backgroundLayers.clear();
     
     delete m_startChunk;
+    for (auto* chunk : m_randomChunks) delete chunk;
+    for (auto* chunk : m_gapChunks) delete chunk;
+    for (auto* chunk : m_floatingChunks) delete chunk;
     
-    for (auto* chunk : m_randomChunks)
-        delete chunk;
     m_randomChunks.clear();
-    
-    for (auto* chunk : m_gapChunks)
-        delete chunk;
     m_gapChunks.clear();
-    
-    for (auto* chunk : m_floatingChunks)
-        delete chunk;
     m_floatingChunks.clear();
-    
     m_activeChunks.clear();
 }
 
@@ -53,10 +40,8 @@ bool ChunkMap::Load(const string& _startChunkPath)
     if (!m_startChunk->Load(_startChunkPath))
         return false;
     
-    // Get chunk width from start chunk
     m_chunkWidth = m_startChunk->GetMapPixelWidth();
     
-    // Spawn the start chunk at position 0
     ChunkInstance startInstance;
     startInstance.tileMap = m_startChunk;
     startInstance.worldOffsetX = 0.0f;
@@ -64,35 +49,28 @@ bool ChunkMap::Load(const string& _startChunkPath)
     m_activeChunks.push_back(startInstance);
     
     m_nextChunkX = (float)m_chunkWidth;
-    
     return true;
 }
 
 void ChunkMap::AddRandomChunk(const string& _path)
 {
     TileMap* chunk = new TileMap();
-    if (chunk->Load(_path))
-        m_randomChunks.push_back(chunk);
-    else
-        delete chunk;
+    if (chunk->Load(_path)) m_randomChunks.push_back(chunk);
+    else delete chunk;
 }
 
 void ChunkMap::AddGapChunk(const string& _path)
 {
     TileMap* chunk = new TileMap();
-    if (chunk->Load(_path))
-        m_gapChunks.push_back(chunk);
-    else
-        delete chunk;
+    if (chunk->Load(_path)) m_gapChunks.push_back(chunk);
+    else delete chunk;
 }
 
 void ChunkMap::AddFloatingChunk(const string& _path)
 {
     TileMap* chunk = new TileMap();
-    if (chunk->Load(_path))
-        m_floatingChunks.push_back(chunk);
-    else
-        delete chunk;
+    if (chunk->Load(_path)) m_floatingChunks.push_back(chunk);
+    else delete chunk;
 }
 
 void ChunkMap::AddBackgroundLayer(const string& _path, float _parallaxFactor)
@@ -119,37 +97,25 @@ void ChunkMap::RenderBackgrounds(Renderer* _renderer, Camera* _camera)
     int screenWidth = logicalSize.X;
     int screenHeight = logicalSize.Y;
     
-    // Render layers back to front (index 0 is furthest back)
     for (const auto& layer : m_backgroundLayers)
     {
         if (!layer.texture || layer.width == 0) continue;
         
-        // Scale height to fit screen, maintain aspect ratio
         float scale = (float)screenHeight / (float)layer.height;
         int scaledWidth = (int)(layer.width * scale);
         int scaledHeight = screenHeight;
         
         if (scaledWidth == 0) continue;
         
-        // Calculate parallax offset using scaled width for proper looping
         float parallaxOffset = cameraX * layer.parallaxFactor;
-        
-        // Use fmod to get offset within one image width, always negative or zero
         float offset = fmod(parallaxOffset, (float)scaledWidth);
         float startX = -offset;
         
-        // Ensure start from left of screen
         while (startX > 0) startX -= scaledWidth;
         
-        // Render enough copies to cover the screen plus one extra for seamless wrap
         for (float x = startX; x < screenWidth + scaledWidth; x += scaledWidth)
         {
-            SDL_Rect dst;
-            dst.x = (int)x;
-            dst.y = 0;
-            dst.w = scaledWidth;
-            dst.h = scaledHeight;
-            
+            SDL_Rect dst = { (int)x, 0, scaledWidth, scaledHeight };
             SDL_RenderCopy(sdl, layer.texture, nullptr, &dst);
         }
     }
@@ -157,24 +123,17 @@ void ChunkMap::RenderBackgrounds(Renderer* _renderer, Camera* _camera)
 
 void ChunkMap::LoadDefaultChunks()
 {
-    // Load background layers (back to front)
-    // Background_2 - furthest back, slower parallax
     AddBackgroundLayer("../Assets/Maps/Images/Tilemap/Background_2.png", 0.3f);
-    // Background_1 - in front, faster parallax
     AddBackgroundLayer("../Assets/Maps/Images/Tilemap/Background_1.png", 0.6f);
     
-    // Load start chunk
     Load("../Assets/Maps/Chunk/chunk_flat_start.tmx");
     
-    // Add random chunks
     AddRandomChunk("../Assets/Maps/Chunk/chunk_random_01.tmx");
     AddRandomChunk("../Assets/Maps/Chunk/chunk_random_11.tmx");
     AddRandomChunk("../Assets/Maps/Chunk/chunk_random_21.tmx");
     
-    // Add gap chunks
     AddGapChunk("../Assets/Maps/Chunk/chunk_gap_01.tmx");
     
-    // Add floating chunks
     AddFloatingChunk("../Assets/Maps/Chunk/chunk_floating_01.tmx");
     AddFloatingChunk("../Assets/Maps/Chunk/chunk_floating_02.tmx");
     AddFloatingChunk("../Assets/Maps/Chunk/chunk_floating_11.tmx");
@@ -183,21 +142,16 @@ void ChunkMap::LoadDefaultChunks()
 
 void ChunkMap::Update(float _cameraX, float _screenWidth)
 {
-    // Spawn new chunks ahead of camera
     float spawnThreshold = _cameraX + _screenWidth + m_chunkWidth;
     
     while (m_nextChunkX < spawnThreshold)
-    {
         SpawnNextChunk();
-    }
     
-    // Remove chunks that are far behind camera (cleanup)
     float despawnThreshold = _cameraX - m_chunkWidth * 2;
     
     auto it = m_activeChunks.begin();
     while (it != m_activeChunks.end())
     {
-        // Not remove template chunks, just remove from active list
         if (it->worldOffsetX + m_chunkWidth < despawnThreshold && it->chunkType != 0)
         {
             CleanupChunkEntities(*it);
@@ -206,25 +160,6 @@ void ChunkMap::Update(float _cameraX, float _screenWidth)
         else
         {
             ++it;
-        }
-    }
-    
-    // Update all coins and enemies in active chunks
-    for (auto& chunk : m_activeChunks)
-    {
-        for (auto* coin : chunk.coins)
-        {
-            if (coin && coin->IsActive())
-            {
-                coin->Update(Timing::Instance().GetDeltaTime(), _cameraX, (int)_screenWidth, m_chunkWidth);
-            }
-        }
-        for (auto* enemy : chunk.enemies)
-        {
-            if (enemy && enemy->IsActive())
-            {
-                enemy->Update(Timing::Instance().GetDeltaTime(), _cameraX, (int)_screenWidth, m_chunkWidth);
-            }
         }
     }
 }
@@ -238,7 +173,6 @@ void ChunkMap::SpawnNextChunk()
     
     if (newChunk.tileMap)
     {
-        // Spawn entities based on spawn zones
         SpawnEntitiesForChunk(newChunk);
         m_activeChunks.push_back(newChunk);
     }
@@ -249,15 +183,10 @@ void ChunkMap::SpawnNextChunk()
 int ChunkMap::SelectRandomChunkType()
 {
     int roll = m_dist(m_rng);
-    // 30% random, 30% gap, 30% floating, 10% fallback to random
-    if (roll <= 30)
-        return 1; // random
-    else if (roll <= 60)
-        return 2; // gap
-    else if (roll <= 90)
-        return 3; // floating
-    else
-        return 1; // fallback to random
+    if (roll <= 30) return 1;
+    else if (roll <= 60) return 2;
+    else if (roll <= 90) return 3;
+    else return 1;
 }
 
 TileMap* ChunkMap::SelectRandomChunkVariant(int _type)
@@ -274,11 +203,8 @@ TileMap* ChunkMap::SelectRandomChunkVariant(int _type)
     
     if (chunks->empty())
     {
-        // Fallback to random chunks if requested type is empty
-        if (!m_randomChunks.empty())
-            chunks = &m_randomChunks;
-        else
-            return nullptr;
+        if (!m_randomChunks.empty()) chunks = &m_randomChunks;
+        else return nullptr;
     }
     
     std::uniform_int_distribution<size_t> dist(0, chunks->size() - 1);
@@ -287,18 +213,14 @@ TileMap* ChunkMap::SelectRandomChunkVariant(int _type)
 
 void ChunkMap::SpawnEntitiesForChunk(ChunkInstance& _chunk)
 {
-    if (!_chunk.tileMap) return;
+    if (!_chunk.tileMap || !m_entityManager) return;
     
-    // Spawn coins from coin spawn zones (all chunk types)
+    // Spawn coins
     const auto& coinZones = _chunk.tileMap->GetCoinSpawnZones();
     for (const auto& zone : coinZones)
     {
-        // Check spawn chance
-        float roll = m_floatDist(m_rng);
-        if (roll > zone.chance)
-            continue;
+        if (m_floatDist(m_rng) > zone.chance) continue;
         
-        // Determine count to spawn
         int count = zone.minCount;
         if (zone.maxCount > zone.minCount)
         {
@@ -306,10 +228,8 @@ void ChunkMap::SpawnEntitiesForChunk(ChunkInstance& _chunk)
             count = countDist(m_rng);
         }
         
-        // Spawn coins within the zone
         for (int i = 0; i < count; ++i)
         {
-            // Random position within zone (center X, bottom Y for Initialize)
             float coinWidth = 16.0f;
             float coinHeight = 16.0f;
             std::uniform_real_distribution<float> xDist(zone.x + coinWidth * 0.5f, zone.x + zone.width - coinWidth * 0.5f);
@@ -317,42 +237,32 @@ void ChunkMap::SpawnEntitiesForChunk(ChunkInstance& _chunk)
             
             float localX = xDist(m_rng);
             float localY = yDist(m_rng);
-            
-            // Convert to world position (Initialize expects center-bottom position)
             float worldX = localX + _chunk.worldOffsetX;
             float worldY = localY;
             
-            Coin* coin = new Coin();
-            coin->Initialize(worldX, worldY);
-            _chunk.coins.push_back(coin);
+            Entity* coin = EntityFactory::CreateRandomCoin(worldX, worldY);
+            m_entityManager->GetAllEntities().push_back(coin);
+            _chunk.entities.push_back(coin);
         }
     }
     
-    // Spawn enemies from enemy spawn zones
+    // Spawn enemies
     const auto& enemyZones = _chunk.tileMap->GetEnemySpawnZones();
     for (const auto& zone : enemyZones)
     {
-        // Check spawn chance
-        float roll = m_floatDist(m_rng);
-        if (roll > zone.chance)
-            continue;
+        if (m_floatDist(m_rng) > zone.chance) continue;
         
-        // Spawn enemies within the zone
         for (int i = 0; i < zone.maxCount; ++i)
         {
-            // Random position within zone (center X for Initialize)
             float enemyWidth = 16.0f;
             std::uniform_real_distribution<float> xDist(zone.x + enemyWidth * 0.5f, zone.x + zone.width - enemyWidth * 0.5f);
             
             float localX = xDist(m_rng);
-            float localY = zone.y + zone.height; // Spawn at bottom of zone
-            
-            // Convert to world position
+            float localY = zone.y + zone.height;
             float worldX = localX + _chunk.worldOffsetX;
             float worldY = localY;
             
-            // Select enemy type based on weights
-            EnemyType enemyType = EnemyType::Ghost;
+            EnemyVariant enemyVariant = EnemyVariant::Ghost;
             if (!zone.enemyTypes.empty() && !zone.enemyWeights.empty())
             {
                 float weightRoll = m_floatDist(m_rng);
@@ -362,56 +272,47 @@ void ChunkMap::SpawnEntitiesForChunk(ChunkInstance& _chunk)
                     cumulative += (j < zone.enemyWeights.size()) ? zone.enemyWeights[j] : 0.5f;
                     if (weightRoll <= cumulative)
                     {
-                        if (zone.enemyTypes[j] == "ghost")
-                            enemyType = EnemyType::Ghost;
-                        else if (zone.enemyTypes[j] == "mushroom")
-                            enemyType = EnemyType::Mushroom;
+                        if (zone.enemyTypes[j] == "mushroom")
+                            enemyVariant = EnemyVariant::Mushroom;
                         break;
                     }
                 }
             }
             
-            // Calculate movement boundaries (zone bounds in world space)
             float leftBound = zone.x + _chunk.worldOffsetX;
             float rightBound = zone.x + zone.width + _chunk.worldOffsetX - enemyWidth;
             
-            Enemy* enemy = new Enemy();
-            enemy->Initialize(worldX, worldY, enemyType, leftBound, rightBound);
-            _chunk.enemies.push_back(enemy);
+            Entity* enemy = EntityFactory::CreateEnemy(worldX, worldY, enemyVariant, leftBound, rightBound);
+            m_entityManager->GetAllEntities().push_back(enemy);
+            _chunk.entities.push_back(enemy);
         }
     }
 }
 
 void ChunkMap::CleanupChunkEntities(ChunkInstance& _chunk)
 {
-    for (auto* coin : _chunk.coins)
-    {
-        delete coin;
-    }
-    _chunk.coins.clear();
+    if (!m_entityManager) return;
     
-    for (auto* enemy : _chunk.enemies)
+    for (auto* entity : _chunk.entities)
     {
-        delete enemy;
+        if (entity)
+            m_entityManager->DestroyEntity(entity);
     }
-    _chunk.enemies.clear();
+    _chunk.entities.clear();
 }
 
 void ChunkMap::Render(Renderer* _renderer, Camera* _camera)
 {
     float cameraX = _camera ? _camera->GetX() : 0.0f;
-    
     Point logicalSize = _renderer->GetLogicalSize();
     int screenWidth = logicalSize.X;
     
     for (const auto& chunk : m_activeChunks)
     {
-        // Check if chunk is visible
         float chunkRight = chunk.worldOffsetX + m_chunkWidth;
         if (chunkRight < cameraX || chunk.worldOffsetX > cameraX + screenWidth)
             continue;
         
-        // Render this chunk with offset
         RenderChunkWithOffset(_renderer, _camera, chunk);
     }
 }
@@ -431,7 +332,6 @@ void ChunkMap::RenderChunkWithOffset(Renderer* _renderer, Camera* _camera, const
     int tileWidth = tileMap->GetTileWidth();
     int tileHeight = tileMap->GetTileHeight();
         
-    // Render tile layers
     const auto& layers = tileMap->GetLayers();
     for (const auto& li : layers)
     {
@@ -491,10 +391,8 @@ bool ChunkMap::CheckCollisionTop(float _x, float _y, float _width, float _height
                 float shapeRight = shapeX + shape.width;
                 float shapeBottom = shapeY + shape.height;
                 
-                // Skip if player is not horizontally overlapping
                 if (_x + _width <= shapeX || _x >= shapeRight) continue;
                 
-                // Ground collision: player's bottom is at or below ground top,
                 if (playerBottom >= shapeY && _y < shapeBottom && shapeY < bestY)
                 {
                     bestY = shapeY;
@@ -504,11 +402,7 @@ bool ChunkMap::CheckCollisionTop(float _x, float _y, float _width, float _height
         }
     }
     
-    if (found)
-    {
-        _outGroundY = bestY;
-        return true;
-    }
+    if (found) { _outGroundY = bestY; return true; }
     return false;
 }
 
@@ -545,11 +439,7 @@ bool ChunkMap::CheckCollisionBottom(float _x, float _y, float _width, float _hei
         }
     }
     
-    if (found)
-    {
-        _outCeilingY = bestY;
-        return true;
-    }
+    if (found) { _outCeilingY = bestY; return true; }
     return false;
 }
 
@@ -574,11 +464,8 @@ bool ChunkMap::CheckCollisionLeft(float _x, float _y, float _width, float _heigh
                 float shapeRight = shapeX + shape.width;
                 float shapeBottom = shapeY + shape.height;
                 
-                // Skip if no vertical overlap
                 if (_y + _height <= shapeY || _y >= shapeBottom) continue;
                 
-                // Only detect as wall if player is NOT standing on top of this shape
-                // (i.e., player's bottom is below the shape's top surface)
                 bool isStandingOnTop = (playerBottom >= shapeY && playerBottom <= shapeY + 5.0f);
                 if (isStandingOnTop) continue;
                 
@@ -591,11 +478,7 @@ bool ChunkMap::CheckCollisionLeft(float _x, float _y, float _width, float _heigh
         }
     }
     
-    if (found)
-    {
-        _outWallX = bestX;
-        return true;
-    }
+    if (found) { _outWallX = bestX; return true; }
     return false;
 }
 
@@ -620,10 +503,8 @@ bool ChunkMap::CheckCollisionRight(float _x, float _y, float _width, float _heig
                 float shapeRight = shapeX + shape.width;
                 float shapeBottom = shapeY + shape.height;
                 
-                // Skip if no vertical overlap
                 if (_y + _height <= shapeY || _y >= shapeBottom) continue;
                 
-                // Only detect as wall if player is NOT standing on top of this shape
                 bool isStandingOnTop = (playerBottom >= shapeY && playerBottom <= shapeY + 5.0f);
                 if (isStandingOnTop) continue;
                 
@@ -636,21 +517,14 @@ bool ChunkMap::CheckCollisionRight(float _x, float _y, float _width, float _heig
         }
     }
     
-    if (found)
-    {
-        _outWallX = bestX;
-        return true;
-    }
+    if (found) { _outWallX = bestX; return true; }
     return false;
 }
 
 void ChunkMap::Reset()
 {
-    // Cleanup all entities in active chunks
     for (auto& chunk : m_activeChunks)
-    {
         CleanupChunkEntities(chunk);
-    }
     
     m_activeChunks.clear();
     
@@ -663,56 +537,19 @@ void ChunkMap::Reset()
     m_nextChunkX = (float)m_chunkWidth;
 }
 
-int ChunkMap::GetChunkPixelWidth() const
-{
-    return m_chunkWidth;
-}
+int ChunkMap::GetChunkPixelWidth() const { return m_chunkWidth; }
 
 int ChunkMap::GetMapPixelHeight() const
 {
-    if (m_startChunk)
-        return m_startChunk->GetMapPixelHeight();
-    return 0;
+    return m_startChunk ? m_startChunk->GetMapPixelHeight() : 0;
 }
 
 bool ChunkMap::GetPlayerSpawnPoint(float& outX, float& outY) const
 {
-    if (m_startChunk)
-    {
-        if (m_startChunk->GetPlayerSpawnPoint(outX, outY))
-            return true;
-    }
+    if (m_startChunk && m_startChunk->GetPlayerSpawnPoint(outX, outY))
+        return true;
     
-    // Default spawn point if none found in map
     outX = 32.0f;
     outY = 0.0f;
     return false;
-}
-
-vector<Coin*> ChunkMap::GetAllCoins() const
-{
-    vector<Coin*> allCoins;
-    for (const auto& chunk : m_activeChunks)
-    {
-        for (auto* coin : chunk.coins)
-        {
-            if (coin)
-                allCoins.push_back(coin);
-        }
-    }
-    return allCoins;
-}
-
-vector<Enemy*> ChunkMap::GetAllEnemies() const
-{
-    vector<Enemy*> allEnemies;
-    for (const auto& chunk : m_activeChunks)
-    {
-        for (auto* enemy : chunk.enemies)
-        {
-            if (enemy)
-                allEnemies.push_back(enemy);
-        }
-    }
-    return allEnemies;
 }

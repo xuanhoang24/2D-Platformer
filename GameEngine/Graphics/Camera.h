@@ -3,8 +3,8 @@
 
 #include "../Core/StandardIncludes.h"
 
-class Player;
 class Renderer;
+class Entity;
 
 class Camera
 {
@@ -12,33 +12,27 @@ public:
 	Camera();
 	virtual ~Camera();
 
-	// Update camera position to follow target
 	void Update(float _deltaTime);
-	void FollowPlayer(Player* _player, Renderer* _renderer);
+	void FollowEntity(Entity* _entity, Renderer* _renderer);
 
-	// Getters
 	float GetX() const { return m_x; }
 	float GetY() const { return m_y; }
 	float GetMaxX() const { return m_maxX; }
 
-	// Setters
 	void SetX(float _x) { m_x = _x; m_maxX = _x; }
 	void SetY(float _y) { m_y = _y; }
 	void SetPosition(float _x, float _y);
 	void Reset();
 
-	// World to screen conversion
 	float WorldToScreenX(float _worldX) const;
 	float WorldToScreenY(float _worldY) const;
 	float ScreenToWorldX(float _screenX) const;
 	float ScreenToWorldY(float _screenY) const;
 
 private:
-	float m_x;  // Camera X position in world space
-	float m_y;  // Camera Y position in world space
-	float m_maxX; // Track furthest camera position to prevent going backward
-	
-	Player* m_targetPlayer;
+	float m_x;
+	float m_y;
+	float m_maxX;
 	Renderer* m_renderer;
 };
 

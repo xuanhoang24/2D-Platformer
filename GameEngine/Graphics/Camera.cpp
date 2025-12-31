@@ -1,14 +1,14 @@
 #include "../Graphics/Camera.h"
-#include "../Game/Player.h"
 #include "../Graphics/Renderer.h"
+#include "../Game/Entity.h"
+#include "../Game/Components.h"
 
 Camera::Camera()
+	: m_x(0.0f)
+	, m_y(0.0f)
+	, m_maxX(0.0f)
+	, m_renderer(nullptr)
 {
-	m_x = 0.0f;
-	m_y = 0.0f;
-	m_targetPlayer = nullptr;
-	m_renderer = nullptr;
-	m_maxX = 0.0f; // Track furthest camera position
 }
 
 Camera::~Camera()
@@ -17,36 +17,26 @@ Camera::~Camera()
 
 void Camera::Update(float _deltaTime)
 {
-	if (m_targetPlayer && m_renderer)
-	{
-		FollowPlayer(m_targetPlayer, m_renderer);
-	}
 }
 
-void Camera::FollowPlayer(Player* _player, Renderer* _renderer)
+void Camera::FollowEntity(Entity* _entity, Renderer* _renderer)
 {
-	if (!_player || !_renderer)
-		return;
+	if (!_entity || !_renderer) return;
 
-	m_targetPlayer = _player;
+	auto* transform = _entity->GetComponent<TransformComponent>();
+	if (!transform) return;
+
 	m_renderer = _renderer;
 
-	float playerWorldX = _player->GetWorldX();
-	float playerWidth = _player->GetWidth();
+	float entityWorldX = transform->worldX;
+	float entityWidth = transform->width * transform->scale;
 	
-	// Get logical size from renderer (matches screen)
 	Point logicalSize = _renderer->GetLogicalSize();
 	int logicalWidth = logicalSize.X;
-	int logicalHeight = logicalSize.Y;
 
-	// Center camera on player horizontally
-	float targetX = playerWorldX + playerWidth * 0.5f - logicalWidth * 0.5f;
+	float targetX = entityWorldX + entityWidth * 0.5f - logicalWidth * 0.5f;
+	if (targetX < 0) targetX = 0;
 
-	// Don't let camera go negative at the start
-	if (targetX < 0)
-		targetX = 0;
-
-	// Prevent camera from moving backward
 	if (targetX > m_maxX)
 	{
 		m_maxX = targetX;
@@ -54,10 +44,9 @@ void Camera::FollowPlayer(Player* _player, Renderer* _renderer)
 	}
 	else
 	{
-		m_x = m_maxX; // Keep camera at furthest position
+		m_x = m_maxX;
 	}
 	
-	// Keep camera at y=0 to show full map height
 	m_y = 0;
 }
 
@@ -67,25 +56,10 @@ void Camera::SetPosition(float _x, float _y)
 	m_y = _y;
 }
 
-float Camera::WorldToScreenX(float _worldX) const
-{
-	return _worldX - m_x;
-}
-
-float Camera::WorldToScreenY(float _worldY) const
-{
-	return _worldY - m_y;
-}
-
-float Camera::ScreenToWorldX(float _screenX) const
-{
-	return _screenX + m_x;
-}
-
-float Camera::ScreenToWorldY(float _screenY) const
-{
-	return _screenY + m_y;
-}
+float Camera::WorldToScreenX(float _worldX) const { return _worldX - m_x; }
+float Camera::WorldToScreenY(float _worldY) const { return _worldY - m_y; }
+float Camera::ScreenToWorldX(float _screenX) const { return _screenX + m_x; }
+float Camera::ScreenToWorldY(float _screenY) const { return _screenY + m_y; }
 
 void Camera::Reset()
 {
