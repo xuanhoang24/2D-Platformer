@@ -244,6 +244,9 @@
     <ClCompile Include="Game\Systems.cpp">
       <Filter>Game</Filter>
     </ClCompile>
+    <ClCompile Include="Game\SpatialGrid.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
     <ClCompile Include="Game\EntityManager.cpp">
       <Filter>Game</Filter>
     </ClCompile>
@@ -271,6 +274,9 @@
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="Game\Systems.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\SpatialGrid.h">
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="Game\EntityManager.h">

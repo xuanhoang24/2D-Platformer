@@ -176,6 +176,9 @@ void EntityManager::Update(float deltaTime)
     m_patrol.Update(m_entities, deltaTime);
     m_scroll.Update(m_entities, deltaTime);
     m_health.Update(m_entities, deltaTime);
+    
+    // Rebuild spatial grid after all movement is done
+    m_entityCollision.RebuildGrid(m_entities);
     m_entityCollision.Update(m_entities, deltaTime);
     m_animation.Update(m_entities, deltaTime);
 

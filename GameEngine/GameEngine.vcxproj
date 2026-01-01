@@ -230,6 +230,7 @@ copy /y "$(SolutionDir)External\SDL2_image-2.8.8\lib\x64\SDL2_image.dll" "$(Targ
   <ItemGroup>
     <ClCompile Include="Game\Entity.cpp" />
     <ClCompile Include="Game\Systems.cpp" />
+    <ClCompile Include="Game\SpatialGrid.cpp" />
     <ClCompile Include="Game\EntityManager.cpp" />
     <ClCompile Include="Game\ChunkMap.cpp" />
     <ClCompile Include="Game\GameUI.cpp" />
@@ -241,6 +242,7 @@ copy /y "$(SolutionDir)External\SDL2_image-2.8.8\lib\x64\SDL2_image.dll" "$(Targ
     <ClInclude Include="Game\Entity.h" />
     <ClInclude Include="Game\Components.h" />
     <ClInclude Include="Game\Systems.h" />
+    <ClInclude Include="Game\SpatialGrid.h" />
     <ClInclude Include="Game\EntityManager.h" />
     <ClInclude Include="Game\ChunkMap.h" />
     <ClInclude Include="Game\GameUI.h" />

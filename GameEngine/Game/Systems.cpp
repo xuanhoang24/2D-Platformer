@@ -1,13 +1,14 @@
 #include "Systems.h"
+#include "SpatialGrid.h"
 #include "ChunkMap.h"
 #include "../Graphics/Renderer.h"
 #include "../Graphics/Camera.h"
 #include "../Core/Timing.h"
 
-void InputSystem::Update(std::vector<Entity*>& entities, float deltaTime)
+void InputSystem::Update(std::vector<Entity*>& _entities, float _deltaTime)
 {
     const Uint8* keys = SDL_GetKeyboardState(NULL);
-    for (auto* entity : entities)
+    for (auto* entity : _entities)
     {
         if (!entity || !entity->IsActive() || !entity->HasComponent<PlayerTag>()) continue;
         auto* movement = entity->GetComponent<MovementComponent>();
@@ -60,21 +61,21 @@ void InputSystem::Update(std::vector<Entity*>& entities, float deltaTime)
     }
 }
 
-void PhysicsSystem::Update(std::vector<Entity*>& entities, float deltaTime)
+void PhysicsSystem::Update(std::vector<Entity*>& _entities, float _deltaTime)
 {
-    for (auto* entity : entities)
+    for (auto* entity : _entities)
     {
         if (!entity || !entity->IsActive()) continue;
         auto* movement = entity->GetComponent<MovementComponent>();
         auto* physics = entity->GetComponent<PhysicsComponent>();
         if (movement && physics && physics->useGravity)
-            movement->velocityY += physics->gravity * deltaTime;
+            movement->velocityY += physics->gravity * _deltaTime;
     }
 }
 
-void JumpSystem::Update(std::vector<Entity*>& entities, float deltaTime)
+void JumpSystem::Update(std::vector<Entity*>& _entities, float _deltaTime)
 {
-    for (auto* entity : entities)
+    for (auto* entity : _entities)
     {
         if (!entity || !entity->IsActive()) continue;
         auto* movement = entity->GetComponent<MovementComponent>();
@@ -82,7 +83,7 @@ void JumpSystem::Update(std::vector<Entity*>& entities, float deltaTime)
         auto* jump = entity->GetComponent<JumpComponent>();
         if (!movement || !physics || !jump) continue;
 
-        jump->coyoteTimer = physics->isGrounded ? jump->coyoteTime : jump->coyoteTimer - deltaTime;
+        jump->coyoteTimer = physics->isGrounded ? jump->coyoteTime : jump->coyoteTimer - _deltaTime;
 
         if (jump->jumpPressed)
         {
@@ -95,16 +96,16 @@ void JumpSystem::Update(std::vector<Entity*>& entities, float deltaTime)
             }
             if (jump->isJumping && jump->jumpHoldTimer > 0)
             {
-                movement->velocityY += jump->jumpHoldForce * deltaTime;
-                jump->jumpHoldTimer -= deltaTime;
+                movement->velocityY += jump->jumpHoldForce * _deltaTime;
+                jump->jumpHoldTimer -= _deltaTime;
             }
         }
     }
 }
 
-void DashSystem::Update(std::vector<Entity*>& entities, float deltaTime)
+void DashSystem::Update(std::vector<Entity*>& _entities, float _deltaTime)
 {
-    for (auto* entity : entities)
+    for (auto* entity : _entities)
     {
         if (!entity || !entity->IsActive()) continue;
         auto* movement = entity->GetComponent<MovementComponent>();
@@ -114,7 +115,7 @@ void DashSystem::Update(std::vector<Entity*>& entities, float deltaTime)
 
         // Update cooldown timer
         if (dash->cooldownTimer > 0)
-            dash->cooldownTimer -= deltaTime;
+            dash->cooldownTimer -= _deltaTime;
 
         // Start dash
         if (dash->dashPressed && !dash->isDashing && dash->cooldownTimer <= 0)
@@ -132,7 +133,7 @@ void DashSystem::Update(std::vector<Entity*>& entities, float deltaTime)
         // Update dash
         if (dash->isDashing)
         {
-            dash->dashTimer -= deltaTime;
+            dash->dashTimer -= _deltaTime;
             if (dash->dashTimer <= 0)
             {
                 dash->isDashing = false;
@@ -145,11 +146,11 @@ void DashSystem::Update(std::vector<Entity*>& entities, float deltaTime)
     }
 }
 
-void PunchSystem::Update(std::vector<Entity*>& entities, float deltaTime)
+void PunchSystem::Update(std::vector<Entity*>& _entities, float _deltaTime)
 {
     // Find player
     Entity* player = nullptr;
-    for (auto* entity : entities)
+    for (auto* entity : _entities)
         if (entity && entity->IsActive() && entity->HasComponent<PlayerTag>()) { player = entity; break; }
     if (!player) return;
 
@@ -174,7 +175,7 @@ void PunchSystem::Update(std::vector<Entity*>& entities, float deltaTime)
     // Update punch
     if (punch->isPunching)
     {
-        punch->punchTimer -= deltaTime;
+        punch->punchTimer -= _deltaTime;
         
         // Check for enemy hits (only once per punch)
         if (!punch->hasHit)
@@ -183,7 +184,7 @@ void PunchSystem::Update(std::vector<Entity*>& entities, float deltaTime)
             float playerCenterY = transform->worldY + transform->height / 2;
             float direction = (sprite && !sprite->facingRight) ? -1.0f : 1.0f;
             
-            for (auto* entity : entities)
+            for (auto* entity : _entities)
             {
                 if (!entity || !entity->IsActive() || entity == player) continue;
                 auto* enemy = entity->GetComponent<EnemyComponent>();
@@ -202,7 +203,7 @@ void PunchSystem::Update(std::vector<Entity*>& entities, float deltaTime)
                 float dy = enemyCenterY - playerCenterY;
                 float dist = sqrt(dx * dx + dy * dy);
                 
-                // Only hit if within 5 pixels
+                // Only hit if within range
                 if (dist <= punch->punchRange)
                 {
                     enemy->destroyed = true;
@@ -222,25 +223,25 @@ void PunchSystem::Update(std::vector<Entity*>& entities, float deltaTime)
     punch->punchPressed = false;
 }
 
-void MovementSystem::Update(std::vector<Entity*>& entities, float deltaTime)
+void MovementSystem::Update(std::vector<Entity*>& _entities, float _deltaTime)
 {
-    for (auto* entity : entities)
+    for (auto* entity : _entities)
     {
         if (!entity || !entity->IsActive()) continue;
         auto* transform = entity->GetComponent<TransformComponent>();
         auto* movement = entity->GetComponent<MovementComponent>();
         if (transform && movement)
         {
-            transform->worldX += movement->velocityX * deltaTime;
-            transform->worldY += movement->velocityY * deltaTime;
+            transform->worldX += movement->velocityX * _deltaTime;
+            transform->worldY += movement->velocityY * _deltaTime;
         }
     }
 }
 
-void CollisionSystem::Update(std::vector<Entity*>& entities, float deltaTime)
+void CollisionSystem::Update(std::vector<Entity*>& _entities, float _deltaTime)
 {
     if (!m_chunkMap) return;
-    for (auto* entity : entities)
+    for (auto* entity : _entities)
     {
         if (!entity || !entity->IsActive()) continue;
         auto* collision = entity->GetComponent<CollisionComponent>();
@@ -249,13 +250,13 @@ void CollisionSystem::Update(std::vector<Entity*>& entities, float deltaTime)
     }
 }
 
-void CollisionSystem::HandlePlayerCollision(Entity* entity)
+void CollisionSystem::HandlePlayerCollision(Entity* _entity)
 {
-    auto* transform = entity->GetComponent<TransformComponent>();
-    auto* movement = entity->GetComponent<MovementComponent>();
-    auto* physics = entity->GetComponent<PhysicsComponent>();
-    auto* collision = entity->GetComponent<CollisionComponent>();
-    auto* jump = entity->GetComponent<JumpComponent>();
+    auto* transform = _entity->GetComponent<TransformComponent>();
+    auto* movement = _entity->GetComponent<MovementComponent>();
+    auto* physics = _entity->GetComponent<PhysicsComponent>();
+    auto* collision = _entity->GetComponent<CollisionComponent>();
+    auto* jump = _entity->GetComponent<JumpComponent>();
     if (!transform || !movement || !collision) return;
 
     float colX = transform->worldX + collision->offsetX;
@@ -311,9 +312,9 @@ void CollisionSystem::HandlePlayerCollision(Entity* entity)
     }
 }
 
-void PatrolSystem::Update(std::vector<Entity*>& entities, float deltaTime)
+void PatrolSystem::Update(std::vector<Entity*>& _entities, float _deltaTime)
 {
-    for (auto* entity : entities)
+    for (auto* entity : _entities)
     {
         if (!entity || !entity->IsActive()) continue;
         auto* transform = entity->GetComponent<TransformComponent>();
@@ -325,7 +326,7 @@ void PatrolSystem::Update(std::vector<Entity*>& entities, float deltaTime)
         float leftBound = patrol->baseLeftBoundary + offset;
         float rightBound = patrol->baseRightBoundary + offset;
 
-        transform->worldX += movement->moveSpeed * movement->direction * deltaTime;
+        transform->worldX += movement->moveSpeed * movement->direction * _deltaTime;
         if (transform->worldX >= rightBound)
         {
             movement->direction = -1;
@@ -339,17 +340,17 @@ void PatrolSystem::Update(std::vector<Entity*>& entities, float deltaTime)
     }
 }
 
-void ScrollSystem::SetParams(float cameraX, int screenWidth, int mapWidth)
+void ScrollSystem::SetParams(float _cameraX, int _screenWidth, int _mapWidth)
 {
-    m_cameraX = cameraX;
-    m_screenWidth = screenWidth;
-    m_mapWidth = mapWidth;
+    m_cameraX = _cameraX;
+    m_screenWidth = _screenWidth;
+    m_mapWidth = _mapWidth;
 }
 
-void ScrollSystem::Update(std::vector<Entity*>& entities, float deltaTime)
+void ScrollSystem::Update(std::vector<Entity*>& _entities, float _deltaTime)
 {
     if (m_mapWidth == 0) return;
-    for (auto* entity : entities)
+    for (auto* entity : _entities)
     {
         if (!entity || !entity->IsActive()) continue;
         auto* transform = entity->GetComponent<TransformComponent>();
@@ -370,9 +371,9 @@ void ScrollSystem::Update(std::vector<Entity*>& entities, float deltaTime)
     }
 }
 
-void HealthSystem::Update(std::vector<Entity*>& entities, float deltaTime)
+void HealthSystem::Update(std::vector<Entity*>& _entities, float _deltaTime)
 {
-    for (auto* entity : entities)
+    for (auto* entity : _entities)
     {
         if (!entity || !entity->IsActive()) continue;
         auto* health = entity->GetComponent<HealthComponent>();
@@ -380,12 +381,12 @@ void HealthSystem::Update(std::vector<Entity*>& entities, float deltaTime)
 
         if (health->isDead)
         {
-            health->deathTimer += deltaTime;
+            health->deathTimer += _deltaTime;
             if (health->deathTimer >= health->deathDuration) health->isFullyDead = true;
         }
         else if (health->isInvincible)
         {
-            health->invincibleTimer -= deltaTime;
+            health->invincibleTimer -= _deltaTime;
             if (health->invincibleTimer <= 0)
             {
                 health->isInvincible = false;
@@ -395,11 +396,14 @@ void HealthSystem::Update(std::vector<Entity*>& entities, float deltaTime)
     }
 }
 
-void EntityCollisionSystem::Update(std::vector<Entity*>& entities, float deltaTime)
+void EntityCollisionSystem::Update(std::vector<Entity*>& _entities, float _deltaTime)
 {
     m_score = 0;
+    m_lastBroadPhaseChecks = 0;
+    m_lastNarrowPhaseChecks = 0;
+    
     Entity* player = nullptr;
-    for (auto* entity : entities)
+    for (auto* entity : _entities)
         if (entity && entity->IsActive() && entity->HasComponent<PlayerTag>()) { player = entity; break; }
     if (!player) return;
 
@@ -414,7 +418,10 @@ void EntityCollisionSystem::Update(std::vector<Entity*>& entities, float deltaTi
     float playerWidth = playerCollision->boxWidth;
     float playerHeight = playerCollision->boxHeight;
 
-    for (auto* entity : entities)
+    // Get only nearby entities from spatial grid (O(1) lookup instead of O(n))
+    std::vector<Entity*> nearby = m_spatialGrid.GetNearbyEntities(player);
+    
+    for (auto* entity : nearby)
     {
         if (!entity || !entity->IsActive() || entity == player) continue;
         auto* entityTransform = entity->GetComponent<TransformComponent>();
@@ -426,15 +433,23 @@ void EntityCollisionSystem::Update(std::vector<Entity*>& entities, float deltaTi
         float entityWidth = entityCollision->boxWidth;
         float entityHeight = entityCollision->boxHeight;
 
-        bool overlapping = playerX < entityX + entityWidth && playerX + playerWidth > entityX &&
-                           playerY < entityY + entityHeight && playerY + playerHeight > entityY;
+        // Broad-phase: AABB overlap test
+        m_lastBroadPhaseChecks++;
+        bool overlapping = SpatialGrid::AABBOverlap(
+            playerX, playerY, playerWidth, playerHeight,
+            entityX, entityY, entityWidth, entityHeight);
+        
         if (!overlapping) continue;
+        
+        // Narrow-phase: detailed collision handling
+        m_lastNarrowPhaseChecks++;
 
         auto* collectible = entity->GetComponent<CollectibleComponent>();
         if (collectible && !collectible->collected)
         {
             collectible->collected = true;
             entity->SetActive(false);
+            m_spatialGrid.Remove(entity);
             m_score += collectible->pointValue;
             continue;
         }
@@ -447,6 +462,7 @@ void EntityCollisionSystem::Update(std::vector<Entity*>& entities, float deltaTi
             {
                 enemy->destroyed = true;
                 entity->SetActive(false);
+                m_spatialGrid.Remove(entity);
                 m_score += 50;
                 if (playerMovement)
                 {
@@ -484,9 +500,31 @@ void EntityCollisionSystem::Update(std::vector<Entity*>& entities, float deltaTi
     }
 }
 
-void AnimationSystem::Update(std::vector<Entity*>& entities, float deltaTime)
+EntityCollisionSystem::EntityCollisionSystem(int _cellSize)
+    : m_spatialGrid(_cellSize)
 {
-    for (auto* entity : entities)
+}
+
+void EntityCollisionSystem::RebuildGrid(std::vector<Entity*>& _entities)
+{
+    m_spatialGrid.Clear();
+    for (auto* entity : _entities)
+    {
+        if (entity && entity->IsActive() && entity->HasComponent<CollisionComponent>())
+        {
+            m_spatialGrid.Insert(entity);
+        }
+    }
+}
+
+void EntityCollisionSystem::UpdateEntityInGrid(Entity* _entity)
+{
+    m_spatialGrid.Update(_entity);
+}
+
+void AnimationSystem::Update(std::vector<Entity*>& _entities, float _deltaTime)
+{
+    for (auto* entity : _entities)
     {
         if (!entity || !entity->IsActive()) continue;
         auto* sprite = entity->GetComponent<SpriteComponent>();
@@ -514,9 +552,9 @@ void AnimationSystem::Update(std::vector<Entity*>& entities, float deltaTime)
     }
 }
 
-void RenderSystem::Render(std::vector<Entity*>& entities, Renderer* renderer, Camera* camera)
+void RenderSystem::Render(std::vector<Entity*>& _entities, Renderer* _renderer, Camera* _camera)
 {
-    for (auto* entity : entities)
+    for (auto* entity : _entities)
     {
         if (!entity || !entity->IsActive()) continue;
         auto* transform = entity->GetComponent<TransformComponent>();
@@ -527,10 +565,10 @@ void RenderSystem::Render(std::vector<Entity*>& entities, Renderer* renderer, Ca
 
         float width = transform->width * transform->scale;
         float height = transform->height * transform->scale;
-        float screenX = camera ? camera->WorldToScreenX(transform->worldX) : transform->worldX;
+        float screenX = _camera ? _camera->WorldToScreenX(transform->worldX) : transform->worldX;
         float screenY = transform->worldY;
 
-        Point windowSize = renderer->GetWindowSize();
+        Point windowSize = _renderer->GetWindowSize();
         if (screenX < -width || screenX > windowSize.X + width || screenY + height < 0) continue;
 
         Rect destRect = sprite->facingRight
@@ -539,6 +577,6 @@ void RenderSystem::Render(std::vector<Entity*>& entities, Renderer* renderer, Ca
 
         Rect srcRect = sprite->animLoader->UpdateAnimation(sprite->currentAnimation, Timing::Instance().GetDeltaTime());
         Texture* texture = sprite->animLoader->GetTexture(sprite->currentAnimation);
-        if (texture) renderer->RenderTexture(texture, srcRect, destRect);
+        if (texture) _renderer->RenderTexture(texture, srcRect, destRect);
     }
 }
