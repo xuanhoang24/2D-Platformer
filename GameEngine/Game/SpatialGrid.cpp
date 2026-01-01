@@ -1,4 +1,6 @@
 #include "SpatialGrid.h"
+#include "../Graphics/Renderer.h"
+#include "../Graphics/Camera.h"
 #include <algorithm>
 
 SpatialGrid::SpatialGrid(int _cellSize)
@@ -181,4 +183,55 @@ bool SpatialGrid::AABBOverlap(float _ax, float _ay, float _aw, float _ah,
 {
     return _ax < _bx + _bw && _ax + _aw > _bx &&
            _ay < _by + _bh && _ay + _ah > _by;
+}
+
+void SpatialGrid::RenderDebug(Renderer* _renderer, Camera* _camera, float _viewportWidth, float _viewportHeight) const
+{
+    if (!_renderer || !_camera) return;
+    
+    // Calculate visible cell range based on camera position
+    float cameraX = _camera->GetX();
+    float cameraY = _camera->GetY();
+    
+    int minCellX = static_cast<int>(floor(cameraX / m_cellSize)) - 1;
+    int maxCellX = static_cast<int>(floor((cameraX + _viewportWidth) / m_cellSize)) + 1;
+    int minCellY = static_cast<int>(floor(cameraY / m_cellSize)) - 1;
+    int maxCellY = static_cast<int>(floor((cameraY + _viewportHeight) / m_cellSize)) + 1;
+    
+    // Clamp Y to reasonable range
+    if (minCellY < -5) minCellY = -5;
+    if (maxCellY > 20) maxCellY = 20;
+    
+    for (int cx = minCellX; cx <= maxCellX; ++cx)
+    {
+        for (int cy = minCellY; cy <= maxCellY; ++cy)
+        {
+            // Calculate world position of cell
+            float worldX = cx * m_cellSize;
+            float worldY = cy * m_cellSize;
+            
+            // Convert to screen coordinates
+            float screenX = _camera->WorldToScreenX(worldX);
+            float screenY = worldY;
+            
+            // Check if cell has entities
+            auto it = m_cells.find({ cx, cy });
+            bool hasEntities = (it != m_cells.end() && !it->second.empty());
+            
+            // Green for has entities, red for empty
+            if (hasEntities)
+                _renderer->SetDrawColor(Color(0, 255, 0, 255));  // Green
+            else
+                _renderer->SetDrawColor(Color(255, 0, 0, 128));  // Red
+            
+            // Draw cell outline
+            Rect cellRect(
+                static_cast<unsigned int>(screenX),
+                static_cast<unsigned int>(screenY),
+                static_cast<unsigned int>(screenX + m_cellSize),
+                static_cast<unsigned int>(screenY + m_cellSize)
+            );
+            _renderer->RenderRectangle(cellRect);
+        }
+    }
 }

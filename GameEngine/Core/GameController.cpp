@@ -55,6 +55,12 @@ void GameController::ShutDown()
 void GameController::HandleInput(SDL_Event& e)
 {
     if (e.type == SDL_QUIT) m_quit = true;
+    
+    // F1 toggles spatial grid debug visualization
+    if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_F1)
+    {
+        m_entityManager.ToggleSpatialGridDebug();
+    }
 
     m_gameUI->HandleInput(e, m_renderer);
 
@@ -139,6 +145,11 @@ void GameController::RunGame()
         m_chunkMap->RenderBackgrounds(m_renderer, m_camera);
         m_chunkMap->Render(m_renderer, m_camera);
         if (!fullyDead) m_entityManager.Render(m_renderer, m_camera);
+        
+        // Render spatial grid debug overlay (F1)
+        Point logicalSize = m_renderer->GetLogicalSize();
+        m_entityManager.RenderSpatialGridDebug(m_renderer, m_camera, (float)logicalSize.X, (float)logicalSize.Y);
+        
         m_gameUI->Render(m_renderer, m_score, hp, maxHp);
 
         t.CapFPS();

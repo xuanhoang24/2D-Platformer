@@ -203,6 +203,11 @@ void EntityManager::Render(Renderer* renderer, Camera* camera)
     m_render.Render(m_entities, renderer, camera);
 }
 
+void EntityManager::RenderSpatialGridDebug(Renderer* renderer, Camera* camera, float viewportWidth, float viewportHeight)
+{
+    m_entityCollision.RenderDebug(renderer, camera, viewportWidth, viewportHeight);
+}
+
 void EntityManager::ProcessDestroys()
 {
     for (auto* entity : m_pendingDestroy)

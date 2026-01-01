@@ -52,6 +52,11 @@ public:
 
     int GetScore() const { return m_entityCollision.GetScore(); }
     void ResetScore() { m_entityCollision.ResetScore(); }
+    
+    // Debug visualization for spatial grid
+    void ToggleSpatialGridDebug() { m_entityCollision.ToggleDebugDraw(); }
+    bool IsSpatialGridDebugEnabled() const { return m_entityCollision.IsDebugDrawEnabled(); }
+    void RenderSpatialGridDebug(Renderer* renderer, Camera* camera, float viewportWidth, float viewportHeight);
 
     void Reset();
     void Clear();

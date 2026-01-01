@@ -128,11 +128,17 @@ public:
     int GetLastBroadPhaseChecks() const { return m_lastBroadPhaseChecks; }
     int GetLastNarrowPhaseChecks() const { return m_lastNarrowPhaseChecks; }
     
+    // Debug visualization
+    void ToggleDebugDraw() { m_debugDrawEnabled = !m_debugDrawEnabled; }
+    bool IsDebugDrawEnabled() const { return m_debugDrawEnabled; }
+    void RenderDebug(Renderer* _renderer, Camera* _camera, float _viewportWidth, float _viewportHeight);
+    
 private:
     SpatialGrid m_spatialGrid;
     int m_score = 0;
     int m_lastBroadPhaseChecks = 0;
     int m_lastNarrowPhaseChecks = 0;
+    bool m_debugDrawEnabled = false;
 };
 
 // Updates sprite animation based on entity state

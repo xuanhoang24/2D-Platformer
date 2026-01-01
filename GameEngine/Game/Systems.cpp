@@ -522,6 +522,14 @@ void EntityCollisionSystem::UpdateEntityInGrid(Entity* _entity)
     m_spatialGrid.Update(_entity);
 }
 
+void EntityCollisionSystem::RenderDebug(Renderer* _renderer, Camera* _camera, float _viewportWidth, float _viewportHeight)
+{
+    if (m_debugDrawEnabled)
+    {
+        m_spatialGrid.RenderDebug(_renderer, _camera, _viewportWidth, _viewportHeight);
+    }
+}
+
 void AnimationSystem::Update(std::vector<Entity*>& _entities, float _deltaTime)
 {
     for (auto* entity : _entities)

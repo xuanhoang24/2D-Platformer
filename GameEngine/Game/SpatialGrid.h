@@ -7,6 +7,9 @@
 #include <unordered_map>
 #include <unordered_set>
 
+class Renderer;
+class Camera;
+
 /**
  * Spatial partitioning grid for O(n) collision detection.
  * 
@@ -46,6 +49,12 @@ public:
     // Broad-phase AABB test with raw coordinates
     static bool AABBOverlap(float _ax, float _ay, float _aw, float _ah,
                             float _bx, float _by, float _bw, float _bh);
+    
+    // Debug rendering - draws grid cells (red = empty, green = has entities)
+    void RenderDebug(Renderer* _renderer, Camera* _camera, float _viewportWidth, float _viewportHeight) const;
+    
+    // Get cell size for debug info
+    int GetCellSize() const { return m_cellSize; }
 
 private:
     // Hash function for cell coordinates
