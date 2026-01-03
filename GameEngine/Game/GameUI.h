@@ -3,6 +3,7 @@
 
 #include "../Core/StandardIncludes.h"
 #include "../Game/UIButton.h"
+#include "../Game/UISlider.h"
 
 class Renderer;
 class TTFont;
@@ -62,6 +63,9 @@ private:
     UIButton m_restartButton;
     UIButton m_resumeButton;
     UIButton m_mainMenuButton;
+    
+    // UI Sliders
+    UISlider m_volumeSlider;
     
     // For keyboard shortcuts
     bool m_keyStartRequested;

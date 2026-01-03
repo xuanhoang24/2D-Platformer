@@ -20,9 +20,18 @@ void Renderer::Initialize()
 {
     M_ASSERT((SDL_Init(SDL_INIT_EVERYTHING) >= 0), "SDL initialization failed.");
     SDL_GetDisplayBounds(0, &m_srcRect);
-    m_window = SDL_CreateWindow("Endless Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+    m_window = SDL_CreateWindow("Platformer Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
         1280, 720, SDL_WINDOW_SHOWN);
     M_ASSERT(m_window != nullptr, "Failed to initialize SDL window.");
+    
+    // Set window icon
+    SDL_Surface* iconSurface = IMG_Load("../Assets/Textures/sua.ico");
+    if (iconSurface != nullptr)
+    {
+        SDL_SetWindowIcon(m_window, iconSurface);
+        SDL_FreeSurface(iconSurface);
+    }
+    
     m_renderer = SDL_CreateRenderer(m_window, -1, 0);
     M_ASSERT(m_renderer != nullptr, "Failed to initialize SDL renderer.");
     

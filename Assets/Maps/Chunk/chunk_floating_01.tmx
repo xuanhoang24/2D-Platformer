@@ -26,7 +26,7 @@
  <objectgroup id="5" name="Gameplay"/>
  <layer id="1" name="Ground" width="15" height="10">
   <data encoding="base64" compression="zlib">
-   eJxjYBgFAwEYgZgJC2YmQi8fEPNjwQJE6JUGYhksWJYIvRpArIkFa2FRCwC2OAJb
+   eJxjYBgFAwGY8GBCgB8PJgRk8GBCQBMPRgcAtpgCWw==
   </data>
  </layer>
  <layer id="2" name="Decoration" width="15" height="10">

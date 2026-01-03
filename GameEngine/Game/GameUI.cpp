@@ -4,6 +4,7 @@
 #include "../Graphics/Texture.h"
 #include "../Graphics/AnimatedSpriteLoader.h"
 #include "../Core/Timing.h"
+#include "../Audio/GameAudioManager.h"
 #include <sstream>
 
 GameUI::GameUI()
@@ -39,6 +40,9 @@ void GameUI::Initialize()
     m_heartAnimLoader = new AnimatedSpriteLoader();
     m_heartAnimLoader->LoadAnimation("heart_full", "../Assets/Textures/Player/heart2-shine.png", 1, 6, 16, 16, 6, 2.0f);
     m_heartAnimLoader->LoadAnimation("heart_empty", "../Assets/Textures/Player/heart2-empty.png", 1, 1, 16, 16, 6, 0.0f);
+    
+    // Initialize volume slider with current volume
+    m_volumeSlider.SetValue(GameAudioManager::Instance().GetMasterVolume());
 }
 
 void GameUI::SetState(UIState _state)
@@ -54,6 +58,7 @@ void GameUI::ResetRequests()
     m_restartButton.Reset();
     m_resumeButton.Reset();
     m_mainMenuButton.Reset();
+    m_volumeSlider.Reset();
     m_keyStartRequested = false;
     m_keyExitRequested = false;
     m_keyRestartRequested = false;
@@ -104,18 +109,26 @@ void GameUI::RenderStartScreen(Renderer* _renderer)
     
     // Draw title
     int titleW, titleH;
-    m_titleFont->GetTextSize("Endless Game", &titleW, &titleH);
+    m_titleFont->GetTextSize("Platformer Game", &titleW, &titleH);
     SDL_Color yellow = { 255, 220, 50, 255 };
     SDL_Point titlePos = { centerX - titleW / 2, centerY - 60 };
-    m_titleFont->Write(_renderer->GetRenderer(), "Endless Game", yellow, titlePos);
+    m_titleFont->Write(_renderer->GetRenderer(), "Platformer Game", yellow, titlePos);
     
     // Buttons
-    int buttonWidth = 80;
-    int buttonHeight = 22;
+    int buttonWidth = 90;
+    int buttonHeight = 18;
     
-    m_startButton.SetRect(centerX - buttonWidth / 2, centerY - buttonHeight / 2, buttonWidth, buttonHeight);
+    // Start button
+    m_startButton.SetRect(centerX - buttonWidth / 2, centerY - 30, buttonWidth, buttonHeight);
     m_startButton.Render(_renderer, m_font, "START", false);
     
+    // Volume slider
+    int sliderWidth = 100;
+    int sliderHeight = 12;
+    m_volumeSlider.SetRect(centerX - sliderWidth / 2, centerY + 5, sliderWidth, sliderHeight);
+    m_volumeSlider.Render(_renderer, m_font, "Volume");
+    
+    // Exit button
     m_exitButton.SetRect(centerX - buttonWidth / 2, centerY + 35, buttonWidth, buttonHeight);
     m_exitButton.Render(_renderer, m_font, "EXIT", true);
 }
@@ -185,20 +198,29 @@ void GameUI::RenderPauseMenu(Renderer* _renderer)
     int titleW, titleH;
     m_titleFont->GetTextSize("PAUSED", &titleW, &titleH);
     SDL_Color yellow = { 255, 220, 50, 255 };
-    SDL_Point titlePos = { centerX - titleW / 2, centerY - 60 };
+    SDL_Point titlePos = { centerX - titleW / 2, centerY - 70 };
     m_titleFont->Write(_renderer->GetRenderer(), "PAUSED", yellow, titlePos);
     
     // Buttons
-    int buttonWidth = 80;
-    int buttonHeight = 22;
+    int buttonWidth = 90;
+    int buttonHeight = 18;
     
-    m_resumeButton.SetRect(centerX - buttonWidth / 2, centerY - 20, buttonWidth, buttonHeight);
+    // Resume button
+    m_resumeButton.SetRect(centerX - buttonWidth / 2, centerY - 35, buttonWidth, buttonHeight);
     m_resumeButton.Render(_renderer, m_font, "RESUME", false);
     
-    m_mainMenuButton.SetRect(centerX - buttonWidth / 2, centerY + 10, buttonWidth, buttonHeight);
+    // Main Menu button
+    m_mainMenuButton.SetRect(centerX - buttonWidth / 2, centerY - 10, buttonWidth, buttonHeight);
     m_mainMenuButton.Render(_renderer, m_font, "MAIN MENU", false);
     
-    m_exitButton.SetRect(centerX - buttonWidth / 2, centerY + 40, buttonWidth, buttonHeight);
+    // Volume slider
+    int sliderWidth = 100;
+    int sliderHeight = 12;
+    m_volumeSlider.SetRect(centerX - sliderWidth / 2, centerY + 25, sliderWidth, sliderHeight);
+    m_volumeSlider.Render(_renderer, m_font, "Volume");
+    
+    // Exit button
+    m_exitButton.SetRect(centerX - buttonWidth / 2, centerY + 55, buttonWidth, buttonHeight);
     m_exitButton.Render(_renderer, m_font, "EXIT", true);
 }
 
@@ -233,13 +255,16 @@ void GameUI::RenderGameOver(Renderer* _renderer, int _score)
     m_font->Write(_renderer->GetRenderer(), ss.str().c_str(), white, scorePos);
     
     // Buttons
-    int buttonWidth = 80;
-    int buttonHeight = 22;
+    int buttonWidth = 90;
+    int buttonHeight = 18;
     
-    m_restartButton.SetRect(centerX - buttonWidth / 2, centerY + 5, buttonWidth, buttonHeight);
+    m_restartButton.SetRect(centerX - buttonWidth / 2, centerY, buttonWidth, buttonHeight);
     m_restartButton.Render(_renderer, m_font, "RESTART", false);
     
-    m_exitButton.SetRect(centerX - buttonWidth / 2, centerY + 35, buttonWidth, buttonHeight);
+    m_mainMenuButton.SetRect(centerX - buttonWidth / 2, centerY + 25, buttonWidth, buttonHeight);
+    m_mainMenuButton.Render(_renderer, m_font, "MAIN MENU", false);
+    
+    m_exitButton.SetRect(centerX - buttonWidth / 2, centerY + 50, buttonWidth, buttonHeight);
     m_exitButton.Render(_renderer, m_font, "EXIT", true);
 }
 
@@ -254,9 +279,16 @@ void GameUI::HandleInput(SDL_Event& _event, Renderer* _renderer)
     {
         m_startButton.UpdateHover(mouseX, mouseY);
         m_exitButton.UpdateHover(mouseX, mouseY);
+        m_volumeSlider.UpdateHover(mouseX, mouseY);
         
         m_startButton.CheckClick(_event);
         m_exitButton.CheckClick(_event);
+        
+        // Handle volume slider
+        if (m_volumeSlider.HandleInput(_event, mouseX, mouseY))
+        {
+            GameAudioManager::Instance().SetMasterVolume(m_volumeSlider.GetValue());
+        }
         
         if (_event.type == SDL_KEYDOWN)
         {
@@ -278,10 +310,17 @@ void GameUI::HandleInput(SDL_Event& _event, Renderer* _renderer)
         m_resumeButton.UpdateHover(mouseX, mouseY);
         m_mainMenuButton.UpdateHover(mouseX, mouseY);
         m_exitButton.UpdateHover(mouseX, mouseY);
+        m_volumeSlider.UpdateHover(mouseX, mouseY);
         
         m_resumeButton.CheckClick(_event);
         m_mainMenuButton.CheckClick(_event);
         m_exitButton.CheckClick(_event);
+        
+        // Handle volume slider
+        if (m_volumeSlider.HandleInput(_event, mouseX, mouseY))
+        {
+            GameAudioManager::Instance().SetMasterVolume(m_volumeSlider.GetValue());
+        }
         
         if (_event.type == SDL_KEYDOWN && _event.key.keysym.sym == SDLK_ESCAPE)
         {
@@ -291,9 +330,11 @@ void GameUI::HandleInput(SDL_Event& _event, Renderer* _renderer)
     else if (m_state == UIState::GameOver)
     {
         m_restartButton.UpdateHover(mouseX, mouseY);
+        m_mainMenuButton.UpdateHover(mouseX, mouseY);
         m_exitButton.UpdateHover(mouseX, mouseY);
         
         m_restartButton.CheckClick(_event);
+        m_mainMenuButton.CheckClick(_event);
         m_exitButton.CheckClick(_event);
         
         if (_event.type == SDL_KEYDOWN)

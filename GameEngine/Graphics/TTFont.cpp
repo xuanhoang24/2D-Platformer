@@ -33,6 +33,8 @@ void TTFont::Write(SDL_Renderer* _renderer, const char* _text, SDL_Color _color,
 
 	SDL_Texture* texture;
 	texture = SDL_CreateTextureFromSurface(_renderer, surface);
+	
+	SDL_SetTextureScaleMode(texture, SDL_ScaleModeLinear);
 
 	SDL_Rect destRect{ _pos.x, _pos.y, surface->w,surface->h };
 	M_ASSERT(((SDL_RenderCopyEx(_renderer, texture, nullptr, &destRect, 0, nullptr, SDL_FLIP_NONE)) >= 0), "Could not render texture");
@@ -50,6 +52,8 @@ void TTFont::Write(SDL_Renderer* _renderer, int _fontSize, const char* _text, SD
 
 	SDL_Surface* surface = TTF_RenderUTF8_Blended(tempFont, _text, _color);
 	SDL_Texture* texture = SDL_CreateTextureFromSurface(_renderer, surface);
+	
+	SDL_SetTextureScaleMode(texture, SDL_ScaleModeLinear);
 
 	SDL_Rect destRect{ _pos.x, _pos.y, surface->w, surface->h };
 	SDL_RenderCopyEx(_renderer, texture, nullptr, &destRect, 0, nullptr, SDL_FLIP_NONE);

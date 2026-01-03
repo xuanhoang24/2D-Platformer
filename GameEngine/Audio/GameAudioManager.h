@@ -34,6 +34,10 @@ public:
     
     // Stop all sounds
     void StopAllSounds();
+    
+    // Volume control (0-100)
+    void SetMasterVolume(int _volume);
+    int GetMasterVolume() const;
 
 private:
     AudioController* m_audioController = nullptr;

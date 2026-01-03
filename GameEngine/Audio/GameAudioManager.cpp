@@ -121,3 +121,15 @@ void GameAudioManager::StopAllSounds()
         m_audioController->StopMusic();
     }
 }
+void GameAudioManager::SetMasterVolume(int _volume)
+{
+    if (m_audioController)
+        m_audioController->SetMasterVolume(_volume);
+}
+
+int GameAudioManager::GetMasterVolume() const
+{
+    if (m_audioController)
+        return m_audioController->GetMasterVolume();
+    return 100;
+}

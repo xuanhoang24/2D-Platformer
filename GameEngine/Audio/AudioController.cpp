@@ -4,10 +4,15 @@
 
 AudioController::AudioController()
 {
-	M_ASSERT((Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) >= 0), "Failed to initialize Mi Audio");
+	M_ASSERT((Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) >= 0), "Failed to initialize Mix Audio");
 	Mix_AllocateChannels(MaxEffectChannels);
 	SoundEffect::Pool = new ObjectPool<SoundEffect>();
 	m_currentSong = nullptr;
+	
+	// Set default volumes
+	m_masterVolume = 50;
+	m_musicVolume = 50;
+	m_effectsVolume = 50;
 }
 
 AudioController::~AudioController()
@@ -32,7 +37,13 @@ Song* AudioController::LoadSong(string _guid)
 void AudioController::Play(SoundEffect* _effect)
 {
 	int channel;
-	channel = Mix_PlayChannel(-1, GetSDLSFX(_effect), 0);
+	Mix_Chunk* chunk = GetSDLSFX(_effect);
+	
+	// Apply volume (SDL_mixer uses 0-128 range)
+	int sdlVolume = (m_masterVolume * m_effectsVolume * 128) / (100 * 100);
+	Mix_VolumeChunk(chunk, sdlVolume);
+	
+	channel = Mix_PlayChannel(-1, chunk, 0);
 	if (channel == -1)return;
 	m_currentEffects[channel] = _effect->GetData()->GetGUID();
 	Mix_ChannelFinished(AudioController::CatchChannelDone);
@@ -61,6 +72,11 @@ Mix_Chunk* AudioController::GetSDLSFX(SoundEffect* _effect)
 void AudioController::Play(Song* _song)
 {
 	m_currentSong = GetSDLMusic(_song);
+	
+	// Apply volume (SDL_mixer uses 0-128 range)
+	int sdlVolume = (m_masterVolume * m_musicVolume * 128) / (100 * 100);
+	Mix_VolumeMusic(sdlVolume);
+	
 	M_ASSERT(Mix_PlayMusic(m_currentSong, -1) != -1, "Failed to play Song");
 	m_musicTitle = string(Mix_GetMusicTitle(m_currentSong));
 	m_musicLength = to_string((int)Mix_MusicDuration(m_currentSong));
@@ -123,4 +139,33 @@ void AudioController::Shutdown()
 	SoundEffect::Pool = nullptr;
 
 	Mix_Quit();
+}
+
+void AudioController::SetMasterVolume(int _volume)
+{
+	m_masterVolume = max(0, min(100, _volume));
+	
+	// Update current music volume
+	if (m_currentSong)
+	{
+		int sdlVolume = (m_masterVolume * m_musicVolume * 128) / (100 * 100);
+		Mix_VolumeMusic(sdlVolume);
+	}
+}
+
+void AudioController::SetMusicVolume(int _volume)
+{
+	m_musicVolume = max(0, min(100, _volume));
+	
+	// Update current music volume
+	if (m_currentSong)
+	{
+		int sdlVolume = (m_masterVolume * m_musicVolume * 128) / (100 * 100);
+		Mix_VolumeMusic(sdlVolume);
+	}
+}
+
+void AudioController::SetEffectsVolume(int _volume)
+{
+	m_effectsVolume = max(0, min(100, _volume));
 }

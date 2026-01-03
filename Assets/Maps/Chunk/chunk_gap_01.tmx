@@ -36,7 +36,7 @@
  </objectgroup>
  <layer id="1" name="Ground" width="15" height="10">
   <data encoding="base64" compression="zlib">
-   eJxjYBgF9ABMSJgZjzpGNLUgzI+EBfDo5UNTC8IySFgWj15pNLUgrImEtfDo1UBTC8IA5oADBw==
+   eJxjYBgF9ABMaJhYdSDMj4ZxAXR1ICyDhnEBdHUgrImGcQF0dSAMAOYQAwc=
   </data>
  </layer>
  <layer id="2" name="Decoration" width="15" height="10">

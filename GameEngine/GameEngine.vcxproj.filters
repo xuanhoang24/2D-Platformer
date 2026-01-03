@@ -149,6 +149,9 @@
     <ClCompile Include="Audio\Song.cpp">
       <Filter>Audio</Filter>
     </ClCompile>
+    <ClCompile Include="Audio\GameAudioManager.cpp">
+      <Filter>Audio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Audio\AudioController.h">
@@ -158,6 +161,9 @@
       <Filter>Audio</Filter>
     </ClInclude>
     <ClInclude Include="Audio\Song.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Audio\GameAudioManager.h">
       <Filter>Audio</Filter>
     </ClInclude>
   </ItemGroup>
@@ -259,6 +265,9 @@
     <ClCompile Include="Game\UIButton.cpp">
       <Filter>Game</Filter>
     </ClCompile>
+    <ClCompile Include="Game\UISlider.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
     <ClCompile Include="Game\Level.cpp">
       <Filter>Game</Filter>
     </ClCompile>
@@ -289,6 +298,9 @@
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="Game\UIButton.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Game\UISlider.h">
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="Game\Level.h">

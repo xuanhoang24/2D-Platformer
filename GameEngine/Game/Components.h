@@ -49,9 +49,9 @@ struct JumpComponent : Component
 {
     bool jumpPressed = false;
     bool isJumping = false;
-    float jumpForce = -400;
-    float jumpHoldForce = -300;     // Extra force while holding jump
-    float jumpMaxHoldTime = 0.2f;
+    float jumpForce = -300;
+    float jumpHoldForce = -400;     // Extra force while holding jump
+    float jumpMaxHoldTime = 0.5f;
     float jumpHoldTimer = 0;
     float coyoteTime = 0.12f;       // Grace period after leaving ground
     float coyoteTimer = 0;
