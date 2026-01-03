@@ -4,6 +4,7 @@
 #include "../Graphics/Renderer.h"
 #include "../Graphics/Camera.h"
 #include "../Core/Timing.h"
+#include "../Audio/GameAudioManager.h"
 
 void InputSystem::Update(std::vector<Entity*>& _entities, float _deltaTime)
 {
@@ -93,6 +94,9 @@ void JumpSystem::Update(std::vector<Entity*>& _entities, float _deltaTime)
                 physics->isGrounded = false;
                 movement->velocityY = jump->jumpForce;
                 jump->jumpHoldTimer = jump->jumpMaxHoldTime;
+                
+                // Play player jump sound
+                GameAudioManager::Instance().PlayPlayerJumpSound();
             }
             if (jump->isJumping && jump->jumpHoldTimer > 0)
             {
@@ -123,6 +127,9 @@ void DashSystem::Update(std::vector<Entity*>& _entities, float _deltaTime)
             dash->isDashing = true;
             dash->dashTimer = dash->dashDuration;
             dash->dashPressed = false;
+            
+            // Play dash sound
+            GameAudioManager::Instance().PlayDashSound();
             
             // Dash in facing direction
             float direction = (sprite && !sprite->facingRight) ? -1.0f : 1.0f;
@@ -170,6 +177,9 @@ void PunchSystem::Update(std::vector<Entity*>& _entities, float _deltaTime)
         
         // Stop movement during punch
         if (movement) movement->velocityX = 0;
+        
+        // Play punch sound
+        GameAudioManager::Instance().PlayPunchSound();
     }
 
     // Update punch
@@ -451,6 +461,9 @@ void EntityCollisionSystem::Update(std::vector<Entity*>& _entities, float _delta
             entity->SetActive(false);
             m_spatialGrid.Remove(entity);
             m_score += collectible->pointValue;
+            
+            // Play collect sound for collectible pickup
+            GameAudioManager::Instance().PlayClickSound();
             continue;
         }
 
@@ -464,6 +477,10 @@ void EntityCollisionSystem::Update(std::vector<Entity*>& _entities, float _delta
                 entity->SetActive(false);
                 m_spatialGrid.Remove(entity);
                 m_score += 50;
+                
+                // Play enemy stomp sound
+                GameAudioManager::Instance().PlayEnemyStompSound();
+                
                 if (playerMovement)
                 {
                     auto* jump = player->GetComponent<JumpComponent>();
@@ -484,6 +501,10 @@ void EntityCollisionSystem::Update(std::vector<Entity*>& _entities, float _delta
                     playerHealth->health = 0;
                     playerHealth->isDead = true;
                     playerHealth->deathTimer = 0;
+                    
+                    // Play player death sound
+                    GameAudioManager::Instance().PlayDieSound();
+                    
                     if (playerMovement)
                     {
                         playerMovement->velocityX = 0;
@@ -492,6 +513,9 @@ void EntityCollisionSystem::Update(std::vector<Entity*>& _entities, float _delta
                 }
                 else
                 {
+                    // Player hurt - play hurt sound
+                    GameAudioManager::Instance().PlayHurtSound();
+                    
                     playerHealth->isInvincible = true;
                     playerHealth->invincibleTimer = playerHealth->invincibleDuration;
                 }

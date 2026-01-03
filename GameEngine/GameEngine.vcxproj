@@ -185,11 +185,13 @@ copy /y "$(SolutionDir)External\SDL2_image-2.8.8\lib\x64\SDL2_image.dll" "$(Targ
     <ClCompile Include="Audio\AudioController.cpp" />
     <ClCompile Include="Audio\SoundEffect.cpp" />
     <ClCompile Include="Audio\Song.cpp" />
+    <ClCompile Include="Audio\GameAudioManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Audio\AudioController.h" />
     <ClInclude Include="Audio\SoundEffect.h" />
     <ClInclude Include="Audio\Song.h" />
+    <ClInclude Include="Audio\GameAudioManager.h" />
   </ItemGroup>
   <!-- Input Files -->
   <ItemGroup>

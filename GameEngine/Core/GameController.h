@@ -3,12 +3,12 @@
 
 #include "../Core/StandardIncludes.h"
 #include "../Game/EntityManager.h"
+#include "../Game/GameUI.h"
 
 class Renderer;
 class InputController;
 class ChunkMap;
 class Camera;
-class GameUI;
 
 class GameController : public Singleton<GameController>
 {
@@ -33,6 +33,8 @@ private:
     Camera* m_camera = nullptr;
     GameUI* m_gameUI = nullptr;
     int m_score = 0;
+    
+    UIState m_previousState = UIState::StartScreen;
     bool m_quit = false;
     bool m_collisionBoxDebug = false;
 };

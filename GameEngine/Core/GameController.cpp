@@ -5,6 +5,7 @@
 #include "../Graphics/SpriteSheet.h"
 #include "../Graphics/Texture.h"
 #include "../Input/InputController.h"
+#include "../Audio/GameAudioManager.h"
 #include "../Resources/AssetController.h"
 #include "../Core/Timing.h"
 #include "../Game/ChunkMap.h"
@@ -25,6 +26,8 @@ void GameController::Initialize()
     m_input = &InputController::Instance();
     m_camera = new Camera();
 
+    GameAudioManager::Instance().Initialize();
+
     m_chunkMap = new ChunkMap();
     m_chunkMap->SetEntityManager(&m_entityManager);
     m_chunkMap->LoadDefaultChunks();
@@ -38,6 +41,8 @@ void GameController::Initialize()
 
     m_gameUI = new GameUI();
     m_gameUI->Initialize();
+    
+    GameAudioManager::Instance().PlayMenuMusic();
 }
 
 void GameController::ShutDown()
@@ -71,11 +76,32 @@ void GameController::HandleInput(SDL_Event& e)
 
     m_gameUI->HandleInput(e, m_renderer);
 
-    if (m_gameUI->IsStartRequested()) m_gameUI->SetState(UIState::Playing);
-    if (m_gameUI->IsRestartRequested()) RestartGame();
-    if (m_gameUI->IsResumeRequested()) m_gameUI->SetState(UIState::Playing);
-    if (m_gameUI->IsMainMenuRequested()) { RestartGame(); m_gameUI->SetState(UIState::StartScreen); }
-    if (m_gameUI->IsExitRequested()) m_quit = true;
+    if (m_gameUI->IsStartRequested()) 
+    {
+        m_gameUI->SetState(UIState::Playing);
+        GameAudioManager::Instance().PlayClickSound();
+    }
+    if (m_gameUI->IsRestartRequested()) 
+    {
+        RestartGame();
+        GameAudioManager::Instance().PlayClickSound();
+    }
+    if (m_gameUI->IsResumeRequested()) 
+    {
+        m_gameUI->SetState(UIState::Playing);
+        GameAudioManager::Instance().PlayClickSound();
+    }
+    if (m_gameUI->IsMainMenuRequested()) 
+    { 
+        RestartGame(); 
+        m_gameUI->SetState(UIState::StartScreen);
+        GameAudioManager::Instance().PlayClickSound();
+    }
+    if (m_gameUI->IsExitRequested()) 
+    {
+        m_quit = true;
+        GameAudioManager::Instance().PlayClickSound();
+    }
 }
 
 void GameController::RunGame()
@@ -101,6 +127,34 @@ void GameController::RunGame()
         }
 
         UIState state = m_gameUI->GetState();
+        
+        // Handle audio state transitions
+        if (state != m_previousState)
+        {
+            switch (state)
+            {
+                case UIState::StartScreen:
+                case UIState::GameOver:
+                    GameAudioManager::Instance().StopAllSounds();
+                    GameAudioManager::Instance().PlayMenuMusic();
+                    break;
+                case UIState::Playing:
+                    GameAudioManager::Instance().StopAllSounds();
+                    GameAudioManager::Instance().PlayBackgroundMusic();
+                    break;
+                case UIState::Paused:
+                    GameAudioManager::Instance().PauseMusic();
+                    break;
+            }
+            
+            // Resume music when returning to playing from pause
+            if (m_previousState == UIState::Paused && state == UIState::Playing)
+            {
+                GameAudioManager::Instance().ResumeMusic();
+            }
+            
+            m_previousState = state;
+        }
 
         if (state == UIState::StartScreen)
         {

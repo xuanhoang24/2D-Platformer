@@ -1,2 +1,7 @@
+Player & Map:
 https://totuslotus.itch.io/small-platformer-pack
 https://anokolisa.itch.io/basic-140-tiles-grassland-and-mines
+
+Audio:
+https://mixkit.co/
+https://opengameart.org/content/library-of-game-sounds

@@ -1,5 +1,6 @@
 #include "EntityManager.h"
 #include "ChunkMap.h"
+#include "../Audio/GameAudioManager.h"
 #include <algorithm>
 #include <random>
 
@@ -192,6 +193,8 @@ void EntityManager::Update(float deltaTime)
             health->isDead = true;
             health->health = 0;
             health->deathTimer = 0;
+            
+            GameAudioManager::Instance().PlayDieSound();
         }
     }
 
